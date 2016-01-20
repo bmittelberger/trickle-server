@@ -1,0 +1,6 @@
+{
+  "production": false,
+  "productionPort": 80,
+  "devPort": 3000,
+  "apiRoot": "/api"
+}

@@ -1,8 +1,12 @@
-var express = require('express');
-var app = express();
+var express = require('express'),
+    app = express(),
+    config = require('./config.json'),
+    api = require('./api');
 
-app.get('/', function(req, res) {
-  res.send('Hello!');
+app.use('/api', api(config));
+
+app.all('/', function(req, res) {
+  res.redirect(config.apiRoot);
 });
 
-app.listen(80);
+app.listen(config.production ? config.productionPort : config.devPort);
