@@ -30,7 +30,8 @@ var relations = [
   'UserGroup'
 ];
 relations.forEach(function(relation) {
-  module.exports[relation] = sequelize.import(__dirname + '/relations/' + relation);
+  module.exports[relation] = sequelize.import(__dirname + '/relations/' +
+                                              relation);
 });
 
 (function(m) {

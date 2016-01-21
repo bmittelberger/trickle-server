@@ -2,5 +2,6 @@
   "production": false,
   "productionPort": 80,
   "devPort": 3000,
-  "apiRoot": "/api"
+  "apiRoot": "/api",
+  "secretKey": "gyjmBKq7wTEEVGIEdPOmvIR1rEVobe0RrEmlxrJJkRpgMcm2gBRw75hwbCE0i7D7p2A0c7DJ5UKHrBFwOXuZrXSXcob6Xe5SVPFOuHTn3FZ1wLza8AO1QkX7Ep"
 }
