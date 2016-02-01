@@ -3,14 +3,16 @@ var express = require('express'),
 
 module.exports = function(models, config, utils) {
 	var Organization = models.Organization;
+	var User = models.User;
+	var UserOrganization = models.UserOrganization;
 
-	var listAll = function(req,res) {
+	var retrieveAll = function(req,res) {
 		return res.json({
 			sup : "sup"
 		})
 	};
 
-	var createOrganization = function(req,res) {
+	var create = function(req,res) {
 		var error = {
 			organization : null
 		};
@@ -33,23 +35,60 @@ module.exports = function(models, config, utils) {
 			});
 	}
 
-	var addUserToOrganization = function (req,res) {
+	var addUser = function (req, res) {
 		var error = {
 			user : null
 		}
-
-	}
+		if (!req.body.userId || !req.body.isAdmin) {
+			return res.json(400,{
+				error : 'invalid request body'
+			})
+		}
+		var id = parseInt(req.params.id, 10);
+		var newUserId = parseInt(req.body.userId, 10);
+		User
+			.findById(newUserId)	
+			.then(function(user) {
+				if (!user) {
+					return res.status(400).json({
+						error : 'User not found.'
+					});
+				}
+				UserOrganization
+					.create({
+						UserId : newUserId,
+						OrganizationId : id,
+						isAdmin : req.body.isAdmin === 'true'
+					})
+					.then(function(relation) {
+						return res.json({
+							userOrganization : relation
+						});
+					})
+					.catch(function(err) {
+						return res.status(400).json({
+							error : JSON.stringify(err)
+						});
+					});
+			})
+			.catch(function(err) {
+				console.log('in catch')
+				return res.status(400).json({
+					error : JSON.stringify(err)
+				})
+			});
+	};
 
 
   
 
   organizations.use(utils.auth.authenticate);
 
-  organizations.get('/', listAll);
+  organizations.get('/', retrieveAll);
 
-  organizations.post('/createOrganization',createOrganization);
+  organizations.post('/', create);
 
-  organizations.post('/addUserToOrganization', addUserToOrganization)
+  organizations.post('/:id/users', addUser)
 
   return organizations;	
 };

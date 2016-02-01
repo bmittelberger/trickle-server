@@ -38,64 +38,85 @@ module.exports = function(models, config, utils) {
       user: req.user
     });
   };
-  
-  var getUserOrganizations = function(req, res) {
-    organizations = []
-    UserOrganization. //first grab all the matching organization Ids
-      findAll({
-        attributes : 
-          ['UserId','OrganizationId','isAdmin']
-        ,
-        where: {
-          UserId : req.user.id
-        },
-        raw: true
-      })
-      .then(function(relations) { //then pull those organizations from the model
-        if (relations.length > 0) {
-          var organizationIds = []
-          for (entry in relations) { 
-            organizationIds.push(entry.OrganizationId)
-          }
-          Organization.
-            findAll({
-              where : {
-                id : organizationIds
-              },
-              raw : true
-            }).then(function(organzations){
-              return res.json({
-                organizations : organizations
-              })
-            }).catch(function(err) {
-              return res.json({
-                error : err
-              })
-            });
-        } else { //if no organizations, return empty
-          return res.json({
-            "Organizations" : []
-          })
-        }
-      }).
-      catch(function(err) {
+
+  var retrieveUserOrganizations = function(user, req, res) {
+    user
+      .getOrganizations()
+      .then(function(organizations) {
         return res.json({
-          error : err
-        })
+          organizations: organizations.map(function(organization) {
+            return organization.toJSON();
+          })
+        });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error: JSON.stringify(err)
+        });
       });
   };
 
-  var getUserGroups = function(req, res) {
-    return res.json({
-      'groups' : []
-    });
+  var retrieveMyOrganizations = function(req, res) {
+    retrieveUserOrganizations(req.user, req, res);
+  };
+  
+  var retrieveOrganizations = function(req, res) {
+    User
+      .findById(req.params.id)
+      .then(function(user) {
+        if (!user) {
+          return res.status(400).json({
+            error: "User not found."
+          });
+        }
+        return retrieveUserOrganizations(user, req, res);
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error: JSON.stringify(err)
+        });
+      });
   };
 
-  var getUserTransactions = function(req, res) {
-    return res.json({
-      'transactions' : []
-    });
+  var retrieveUserGroups = function(user, req, res) {
+    user
+      .getGroups()
+      .then(function(groups) {
+        return res.json({
+          groups: groups.map(function(group) {
+            return group.toJSON();
+          })
+        });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error: JSON.stringify(err)
+        });
+      });
   };
+
+  var retrieveMyGroups = function(req, res) {
+    retrieveUserGroups(req.user, req, res);
+  };
+
+  var retrieveGroups = function(req, res) {
+    User
+      .findById(req.params.id)
+      .then(function(user) {
+        if (!user) {
+          return res.status(400).json({
+            error: "User not found."
+          });
+        }
+        return retrieveUserGroups(user, req, res);
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error: JSON.stringify(err)
+        });
+      });
+  };
+
 
   var addUserVenmo = function(req, res) {
     var error = {
@@ -115,13 +136,13 @@ module.exports = function(models, config, utils) {
   
   users.get('/me', me);
 
-  users.get('/getUserOrganizations', getUserOrganizations);
+  users.get('/me/organizations', retrieveMyOrganizations);
+  users.get('/:id/organizations', retrieveOrganizations);
 
-  users.get('/getUserGroups', getUserGroups);
+  users.get('/me/groups', retrieveMyGroups);
+  users.get('/:id/groups', retrieveGroups)
 
   users.get('/getUserTransactions', getUserTransactions);
-
-  users.post('/addUserVenmo', addUserVenmo);
   
   return users;
 };
