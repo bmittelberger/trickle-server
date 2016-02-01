@@ -5,6 +5,8 @@ var express = require('express'),
     organizations = require('./organizations.js');
     groups = require('./groups.js');
     transactions = require('./transactions.js');
+    credits = require('./credits.js');
+    rules = require('./rules.js');
 
 module.exports = function(models, config, utils) {
   
@@ -15,6 +17,10 @@ module.exports = function(models, config, utils) {
   api.use('/organizations', organizations(models, config, utils));
 
   api.use('/groups', groups(models, config, utils));
+
+  api.use('/credits', credits(models, config, utils));
+
+  api.use('/rules', rules(models, config, utils));
   
   api.use('/transactions', transactions(models, config, utils));
 
