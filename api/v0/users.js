@@ -72,7 +72,7 @@ module.exports = function(models, config, utils) {
                 error : err
               })
             });
-        } else {
+        } else { //if no organizations, return empty
           return res.json({
             "Organizations" : []
           })

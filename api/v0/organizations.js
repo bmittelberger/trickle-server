@@ -10,7 +10,7 @@ module.exports = function(models, config, utils) {
 		})
 	};
 
-	var addOrganization = function(req,res) {
+	var createOrganization = function(req,res) {
 		var error = {
 			organization : null
 		};
@@ -33,12 +33,23 @@ module.exports = function(models, config, utils) {
 			});
 	}
 
+	var addUserToOrganization = function (req,res) {
+		var error = {
+			user : null
+		}
 
-  organizations.get('/', listAll);
+	}
+
+
+  
 
   organizations.use(utils.auth.authenticate);
 
-  organizations.post('/addOrganization',addOrganization);
+  organizations.get('/', listAll);
+
+  organizations.post('/createOrganization',createOrganization);
+
+  organizations.post('/addUserToOrganization', addUserToOrganization)
 
   return organizations;	
 };
