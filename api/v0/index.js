@@ -5,6 +5,7 @@ var express = require('express'),
     organizations = require('./organizations.js');
     groups = require('./groups.js');
     credits = require('./credits.js');
+    rules = require('./rules.js');
 
 module.exports = function(models, config, utils) {
   
@@ -17,6 +18,8 @@ module.exports = function(models, config, utils) {
   api.use('/groups', groups(models, config, utils));
 
   api.use('/credits', credits(models, config, utils));
+
+  api.use('/rules', rules(models, config, utils));
   
   api.all('/', function(req, res) {
     res.send('Trickle API v0.');
