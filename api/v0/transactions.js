@@ -40,7 +40,7 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
-	var changeStatus = function(req, res) {
+	var updateStatus = function(req, res) {
 		if (!req.body.status ||
 				(req.body.status != 'APPROVED' && req.body.status != 'DECLINED')) {
 			return res.status(400).json( {
@@ -83,7 +83,7 @@ module.exports = function(models, config, utils) {
   transactions.get('/', listAll);
   transactions.post('/', create);
 
-  transactions.post('/:id/status', changeStatus);
+  transactions.post('/:id/status', updateStatus);
 
 	return transactions;
 }

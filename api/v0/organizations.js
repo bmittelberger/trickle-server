@@ -9,7 +9,7 @@ module.exports = function(models, config, utils) {
 
 	var retrieveAll = function(req,res) {
 		return res.json({
-			sup : "sup"
+			error : "there's no reason you should need to see ALL organizations"
 		})
 	};
 
@@ -26,21 +26,43 @@ module.exports = function(models, config, utils) {
 				description : req.body.description,
 				venmo : req.body.venmo
 			}).then(function(organization){
-				return res.json(200,{
+				return res.json({
 					organization : organization.toJSON()
 				});
 			}).catch(function(err){
 				return res.status(400).json({
-					error : err
+					error : JSON.stringify(err)
 				});
 			});
 	};
+
+	var retrieveOrganization = function(req, res) {
+		id = req.params.id;
+		Organization
+			.findById(id)
+			.then(function(organization) {
+				if (!organization) {
+					return res.status(400).json( {
+						error : "Organization not found."
+					});
+				}
+				return res.json({
+					organization : organization.toJSON()
+				});
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : JSON.stringify(err)
+				})
+			});
+	};
+
 
 	var addUser = function (req, res) {
 		var error = {
 			user : null
 		}
-		if (!req.body.userId || !req.body.isAdmin) {
+		if (!req.body.userId) {
 			return res.json(400,{
 				error : 'invalid request body'
 			})
@@ -63,7 +85,7 @@ module.exports = function(models, config, utils) {
 					})
 					.then(function(relation) {
 						return res.json({
-							userOrganization : relation
+							userOrganization : relation.toJSON()
 						});
 					})
 					.catch(function(err) {
@@ -104,7 +126,6 @@ module.exports = function(models, config, utils) {
   		});
   };
 
-
   var retrieveGroups = function(req, res) {
   	Organization.
   		findById(req.params.id)
@@ -143,8 +164,9 @@ module.exports = function(models, config, utils) {
   organizations.use(utils.auth.authenticate);
 
   organizations.get('/', retrieveAll);
-
   organizations.post('/', create);
+
+  organizations.get('/:id', retrieveOrganization);
 
   organizations.post('/:id/users', addUser);
   organizations.get('/:id/users', retrieveUsers);

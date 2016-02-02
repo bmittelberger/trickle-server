@@ -33,6 +33,27 @@ module.exports = function(models, config, utils) {
 			});
 	}
 
+	var retrieveGroup = function(req, res) {
+		var id = req.params.id;
+		Group
+			.findById(id)
+			.then(function (group) {
+				if (!group) {
+					return res.status(400).json({
+						error : "Group not found."
+					});
+				}
+				return res.json({
+					group : group
+				});
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : err
+				});
+			})
+	};
+
 	var retrieveUsers = function(req, res) {
 		Group
 		.findById(req.params.id)
@@ -103,6 +124,8 @@ module.exports = function(models, config, utils) {
 
 	groups.get('/', listAll);
 	groups.post('/', create);
+
+	groups.get('/:id', retrieveGroup)
 
 	groups.get('/:id/users', retrieveUsers);
 

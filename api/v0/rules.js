@@ -6,7 +6,7 @@ module.exports = function(models, config, utils) {
 
 	var listAll = function(req,res) {
 		return res.json({
-			sup : "sup rules"
+			error : "You should never have to see all rules in the db. Why are you even trying?"
 		})
 	};
 
@@ -16,32 +16,33 @@ module.exports = function(models, config, utils) {
 		};
 		if (!req.body.type || !req.body.data ||
 			!req.body.CreditId) {
-			return res.json(400,error);
+			return res.status(400).json({
+				error : 'Invalid request body.'
+			});
 		}
-		console.log(req.body);
-
 		Rule
 			.create({
 				type : Rule.rawAttributes.type.values[req.body.type],
 				data : req.body.data,
 				CreditId : req.body.CreditId,
-			}).then(function(credit){
-				return res.json(200,{
-					credit : credit.toJSON()
+			}).then(function(rule){
+				return res.json({
+					rule : rule.toJSON()
 				});
 			}).catch(function(err){
 				return res.status(400).json({
-					error : err
+					error : JSON.stringify(err)
 				});
 			});
 	}
 
 
-  rules.get('/', listAll);
+  
 
   rules.use(utils.auth.authenticate);
 
-  rules.post('/create',create);
+  rules.get('/', listAll);
+  rules.post('/',create);
 
   return rules;	
 };
