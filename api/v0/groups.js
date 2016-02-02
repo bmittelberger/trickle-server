@@ -3,6 +3,7 @@ var express = require('express'),
 
 module.exports = function(models, config, utils) {
 	var Group = models.Group;
+	var Transaction = models.Transaction;
 
 	var listAll = function(req,res) {
 		return res.json({
@@ -10,7 +11,7 @@ module.exports = function(models, config, utils) {
 		})
 	};
 
-	var addGroup = function(req,res) {
+	var create = function(req,res) {
 		var error = {
 			group : null
 		};
@@ -31,8 +32,6 @@ module.exports = function(models, config, utils) {
 				});
 			});
 	}
-
-
 
 	var retrieveUsers = function(req, res) {
 		Group
@@ -65,13 +64,49 @@ module.exports = function(models, config, utils) {
 		});
 	};
 
+	var retrieveTransactions = function(req, res) {
+		Group
+		.findById(req.params.id)
+		.then(function(group) {
+			if (!group) {
+				return res.status(400).json({
+					error : 'Group not found.'
+				});
+			}
+			Transaction
+				.findAll({
+					where : {
+						GroupId : req.params.id
+					}
+				})
+				.then(function(transactions) {
+					return res.json({
+						transactions : transactions.map(function(transaction) {
+							return transaction.toJSON();
+						})
+					});
+				})
+				.catch(function(err) {
+					return res.status(400).json({
+						error : JSON.stringify(err)
+					});
+				})
+		})
+		.catch(function(err) {
+			return res.status(400).json({
+				error : JSON.stringify(err)
+			});
+		});
+	};
 
 	groups.use(utils.auth.authenticate);
 
 	groups.get('/', listAll);
-	groups.post('/',addGroup);
+	groups.post('/', create);
 
 	groups.get('/:id/users', retrieveUsers);
+
+	groups.get('/:id/transactions', retrieveTransactions);
 
 	return groups;	
 };
