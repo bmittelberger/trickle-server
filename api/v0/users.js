@@ -6,6 +6,8 @@ module.exports = function(models, config, utils) {
   var UserOrganization = models.UserOrganization;
   var Organization = models.Organization;
   var Transaction = models.Transaction;
+  var UserGroup = models.UserGroup;
+  var Group = models.Group;
   
   var create = function(req, res) {
     var error = {
@@ -139,6 +141,53 @@ module.exports = function(models, config, utils) {
   };
 
 
+  var addMeToGroup = function(req, res) {
+    addUserToGroup(req.user,req,res);
+  }
+
+  var addToGroup = function(req, res) {
+    id = req.params.id;
+    User
+      .findById(id)
+      .then(function(user) {
+        if (!user) {
+          return res.status(400).json( {
+            error : "User not found."
+          })
+        }
+        addUserToGroup(user.toJSON(),req,res);
+      })
+      .catch(function(err) { 
+        return res.status(400).json({
+          error : JSON.stringify(err)
+        });
+      })
+  }
+
+  var addUserToGroup = function(user, req, res) {
+    if (!req.body.groupId) {
+      return json.status(400).json({
+        error : 'Invalid request body'
+      });
+    }
+    UserGroup
+      .create({
+        isAdmin : req.body.isAdmin === 'true',
+        UserId : user.id,
+        GroupId : req.body.groupId
+      })
+      .then(function(userGroup) {
+        return res.json({
+          userGroup : userGroup  
+        });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error : JSON.stringify(err)
+        });
+      })
+  };
+
   var retriveUserTransactions = function(id, req, res) {
     Transaction
       .findAll({
@@ -169,6 +218,47 @@ module.exports = function(models, config, utils) {
     retriveUserTransactions(req.user.id, req, res)
   };
 
+  var createMyTransaction = function(req, res) {
+    if (!req.body.amount || !req.body.description ||
+        !req.body.groupId) {
+      return res.status(400).json( {
+        error : "Invalid request body"
+      });
+    }
+    Group
+      .findById(req.body.groupId)
+      .then(function(group) {
+        if (!group) {
+          return res.status(400).json({
+            error : "Group not found."
+          });
+        }
+        Transaction
+          .create( {
+            amount : req.body.amount,
+            description : req.body.description,
+            message : req.body.message,
+            status : Transaction.rawAttributes.status.values[0],
+            UserId : req.user.id,
+            GroupId : req.body.groupId
+          }).then(function(transaction){
+            return res.json({
+              transaction : transaction
+            })
+          }).catch(function(err){
+            return res.json(400,{
+              error : err
+            })
+          });
+      })
+      .catch(function(err) {
+        return res.json(400,{
+          error : err
+        })
+      })
+  }
+
+
 
   users.post('/', create);
   
@@ -183,8 +273,13 @@ module.exports = function(models, config, utils) {
   users.get('/me/groups', retrieveMyGroups);
   users.get('/:id/groups', retrieveGroups);
 
+  users.post('/me/groups', addMeToGroup);
+  users.post('/:id/groups', addToGroup);
+
   users.get('/me/transactions', retrieveMyTransactions);
   users.get('/:id/transactions', retrieveTransactions);
+
+  users.post('/me/transactions', createMyTransaction);
 
   return users;
 };
