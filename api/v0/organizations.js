@@ -26,6 +26,17 @@ module.exports = function(models, config, utils) {
 				description : req.body.description,
 				venmo : req.body.venmo
 			}).then(function(organization){
+				UserOrganization
+					.create({
+						UserId : req.user.id,
+						OrganizationId : organization.toJSON().id,
+						isAdmin : true
+					})
+					.catch(function(err) {
+						return res.status(400).json({
+							error : JSON.stringify(err)
+						});	
+					});
 				return res.json({
 					organization : organization.toJSON()
 				});
@@ -114,7 +125,7 @@ module.exports = function(models, config, utils) {
   				.then(function(users) {
   					return res.json({
   						users : users.map(function(user) {
-  							return user.toJSON();
+  							return user.toJSON()
   						})
   					});
   				})

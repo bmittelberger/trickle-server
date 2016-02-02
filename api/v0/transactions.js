@@ -58,8 +58,8 @@ module.exports = function(models, config, utils) {
 						error : "Transaction not found."
 					});
 				}
-				transaction.
-					updateAttributes({
+				transaction
+					.updateAttributes({
 						status : Transaction.rawAttributes.status.values[statusIndex]
 					})
 					.then(function(transaction) {
