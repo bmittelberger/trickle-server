@@ -5,6 +5,7 @@ module.exports = function(models, config, utils) {
   var User = models.User;
   var UserOrganization = models.UserOrganization;
   var Organization = models.Organization;
+  var Transaction = models.Transaction;
   
   var create = function(req, res) {
     var error = {
@@ -37,6 +38,26 @@ module.exports = function(models, config, utils) {
     return res.json({
       user: req.user
     });
+  };
+
+  var retrieveUser = function(req, res) {
+    User
+      .findById(req.params.id)
+      .then(function(user) {
+        if (!user) {
+          return res.status(400).json({
+            error : "User not found."
+          });
+        }
+        return res.json({
+          user : user.toJSON()
+        });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error : JSON.stringify(err)
+        });
+      });
   };
 
   var retrieveUserOrganizations = function(user, req, res) {
@@ -118,31 +139,52 @@ module.exports = function(models, config, utils) {
   };
 
 
-  var addUserVenmo = function(req, res) {
-    var error = {
-      'error' : 'Must submit valid venmo information'
-    };
-    if (!req.body.venmoData){
-      return res.json(400,error)
-    }
-    return res.json({
-      'success' : 'success'
-    });
+  var retriveUserTransactions = function(id, req, res) {
+    Transaction
+      .findAll({
+        where : {
+          UserId : id
+        }
+      })
+      .then(function(transactions) {
+        console.log(transactions)
+        return res.json({
+          transactions: transactions.map(function(transaction) {
+            return transaction.toJSON();
+          })
+        });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error : JSON.stringify(err)
+        });
+      });
   };
+
+  var retrieveTransactions = function(req, res) {
+    retriveUserTransactions(req.params.id, req, res);
+  };
+
+  var retrieveMyTransactions = function(req, res) {
+    retriveUserTransactions(req.user.id, req, res)
+  };
+
 
   users.post('/', create);
   
   users.use(utils.auth.authenticate);
   
   users.get('/me', me);
+  users.get('/:id', retrieveUser)
 
   users.get('/me/organizations', retrieveMyOrganizations);
   users.get('/:id/organizations', retrieveOrganizations);
 
   users.get('/me/groups', retrieveMyGroups);
-  users.get('/:id/groups', retrieveGroups)
+  users.get('/:id/groups', retrieveGroups);
 
-  users.get('/getUserTransactions', getUserTransactions);
-  
+  users.get('/me/transactions', retrieveMyTransactions);
+  users.get('/:id/transactions', retrieveTransactions);
+
   return users;
 };

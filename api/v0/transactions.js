@@ -40,16 +40,50 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
-	
+	var changeStatus = function(req, res) {
+		if (!req.body.status ||
+				(req.body.status != 'APPROVED' && req.body.status != 'DECLINED')) {
+			return res.status(400).json( {
+				error : "Invalid request body"
+			});
+		}
 
+		//1 is approved, 2 is declined
+		statusIndex = req.body.status === 'APPROVED' ? 1 : 2;
+		Transaction
+			.findById(req.params.id)
+			.then(function(transaction) {
+				if (!transaction) {
+					return res.status(400).json( {
+						error : "Transaction not found."
+					});
+				}
+				transaction.
+					updateAttributes({
+						status : Transaction.rawAttributes.status.values[statusIndex]
+					})
+					.then(function(transaction) {
+						return res.json({
+							transaction : transaction
+						});
+					})
+					.catch(function(err) {
+						return res.status(400).json( {
+							error : JSON.stringify(err)
+						});
+					})
+			})
+			.catch(function(err) {
+
+			})
+	};
 
 	transactions.use(utils.auth.authenticate);
 
   transactions.get('/', listAll);
+  transactions.post('/', create);
 
-  transactions.post('/create', create);
-
-  // transactions.post('/changeStatus', changeStatus);
+  transactions.post('/:id/status', changeStatus);
 
 	return transactions;
 }
