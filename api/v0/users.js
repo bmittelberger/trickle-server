@@ -233,6 +233,10 @@ module.exports = function(models, config, utils) {
             error : "Group not found."
           });
         }
+        //check rules, and determine the status
+          //if rejected -- no balance change -- DECLINED
+          //if pass but no auto payment -- no balance change -- PENDING
+          //if pass and auto payment -- balance change -- ACCEPTED
         Transaction
           .create( {
             amount : req.body.amount,
@@ -242,6 +246,7 @@ module.exports = function(models, config, utils) {
             UserId : req.user.id,
             GroupId : req.body.groupId
           }).then(function(transaction){
+
             return res.json({
               transaction : transaction
             })
@@ -257,8 +262,6 @@ module.exports = function(models, config, utils) {
         })
       })
   }
-
-
 
   users.post('/', create);
   
