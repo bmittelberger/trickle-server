@@ -62,6 +62,11 @@ module.exports = function(models, config, utils) {
       });
   };
 
+  var updateMe = function(req, res) {
+    req.params.id = req.user.id;
+    updateUser(req, res);
+  };
+
   var updateUser = function(req, res) {
     if (!req.body.first || !req.body.last ||
         !req.body.email) {
@@ -96,6 +101,11 @@ module.exports = function(models, config, utils) {
           error : JSON.stringify(err)
         });
       });
+  };
+
+  var deleteMe = function(req, res) {
+    req.params.id = req.user.id;
+    deleteUser(req, res);
   };
 
   var deleteUser = function(req, res) {
@@ -334,7 +344,11 @@ module.exports = function(models, config, utils) {
   
   users.get('/me', me);
   users.get('/:id', retrieveUser)
+
+  users.put('/me', updateMe)
   users.put('/:id', updateUser)
+
+  users.delete('/:id', deleteMe)
   users.delete('/:id', deleteUser)
 
   users.get('/me/organizations', retrieveMyOrganizations);
