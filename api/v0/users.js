@@ -10,7 +10,7 @@ module.exports = function(models, config, utils) {
   var Group = models.Group;
   
   var create = function(req, res) {
-    var error = {
+    var error = { //what does this do? -Adam
       user: null
     };
     if (!req.body.first || !req.body.last ||
@@ -54,6 +54,70 @@ module.exports = function(models, config, utils) {
         return res.json({
           user : user.toJSON()
         });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error : JSON.stringify(err)
+        });
+      });
+  };
+
+  var updateUser = function(req, res) {
+    if (!req.body.first || !req.body.last ||
+        !req.body.email) {
+      return res.json(400, error);
+    }
+    User
+      .findById(req.params.id)
+      .then(function(user) {
+        if (!user) {
+          return res.status(400).json({
+            error : "User not found."
+          });
+        }
+        user.update({
+          first: req.body.first,
+          last: req.body.last,
+          email: req.body.email
+        })
+        .then(function(user) {
+          return res.json(200, {
+            user: user.toJSON()
+          });
+        })
+        .catch(function(err) {
+          return res.status(400).json({
+            error : err
+          });
+        });  
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error : JSON.stringify(err)
+        });
+      });
+  };
+
+  var deleteUser = function(req, res) {
+    User
+      .findById(req.params.id)
+      .then(function(user) {
+        if (!user) {
+          return res.status(400).json({
+            error : "User not found."
+          });
+        }
+        user.destroy()
+        .then(function() {
+          return res.json(200, {
+            result: "user removed" 
+          });
+        })
+        .catch(function(err) {
+          return res.status(400).json({
+            error : err
+          });
+        });  
       })
       .catch(function(err) {
         return res.status(400).json({
@@ -164,9 +228,10 @@ module.exports = function(models, config, utils) {
       })
   }
 
+//need to check if groupId is valid. need to check if user is already in group
   var addUserToGroup = function(user, req, res) {
     if (!req.body.groupId) {
-      return json.status(400).json({
+      return res.status(400).json({
         error : 'Invalid request body'
       });
     }
@@ -266,6 +331,8 @@ module.exports = function(models, config, utils) {
   
   users.get('/me', me);
   users.get('/:id', retrieveUser)
+  users.put('/:id', updateUser)
+  users.delete('/:id', deleteUser)
 
   users.get('/me/organizations', retrieveMyOrganizations);
   users.get('/:id/organizations', retrieveOrganizations);
