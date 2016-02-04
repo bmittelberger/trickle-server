@@ -41,21 +41,29 @@ module.exports = function(models, config, utils) {
 	};
 
 	var updateStatus = function(req, res) {
-		if (!req.body.status ||
-				(req.body.status != 'APPROVED' && req.body.status != 'DECLINED')) {
-			return res.status(400).json( {
-				error : "Invalid request body"
+		if (!req.body.newStatus) {
+			return res.status(400).json({
+				error : 'Invalid request body.'
 			});
 		}
-
-		//1 is approved, 2 is declined
-		statusIndex = req.body.status === 'APPROVED' ? 1 : 2;
 		Transaction
 			.findById(req.params.id)
 			.then(function(transaction) {
 				if (!transaction) {
-					return res.status(400).json( {
-						error : "Transaction not found."
+					return res.status(400).json({
+						error : 'Transaction not found.'
+					})
+				}
+				var statusIndex;
+				if (req.body.newStatus == 'PENDING') {
+					statusIndex = 0;
+				} else if (req.body.newStatus == 'APPROVED') {
+					statusIndex = 1;
+				} else if (req.body.newStatus == 'DECLINED') {
+					statusIndex = 2;
+				} else {
+					return res.status(400).json({
+						error : 'Invalid status value.'
 					});
 				}
 				transaction
@@ -64,26 +72,30 @@ module.exports = function(models, config, utils) {
 					})
 					.then(function(transaction) {
 						return res.json({
-							transaction : transaction
+							transaction : transaction.toJSON()
 						});
 					})
 					.catch(function(err) {
-						return res.status(400).json( {
+						return res.status(400).json({
 							error : JSON.stringify(err)
 						});
-					})
+					});
 			})
 			.catch(function(err) {
-
-			})
+				return res.status(400).json({
+					error : JSON.stringify(err)
+				});
+			});
 	};
+
 
 	transactions.use(utils.auth.authenticate);
 
   transactions.get('/', listAll);
   transactions.post('/', create);
 
-  transactions.post('/:id/status', updateStatus);
+  transactions.put('/:id/status', updateStatus);
+
 
 	return transactions;
 }

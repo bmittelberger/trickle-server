@@ -16,10 +16,10 @@ module.exports = function(models, config, utils) {
 		};
 		if (!req.body.amount || !req.body.description ||
 			!req.body.GroupId) {
-			return res.json(400,error);
+			return res.status(400).json({
+				error : "Invalid request body."
+			});
 		}
-		console.log(req.body);
-
 		Credit
 			.create({
 				amount : req.body.amount,
@@ -37,6 +37,64 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
+	var createSubCredit = function(req, res) {
+		if (!req.body.GroupId || !req.body.amount ||
+				!req.body.description) {
+			return res.status(400).json({
+				error : 'Invalid request body'
+			});
+		}
+		Credit
+			.findById(req.params.id)
+			.then(function(parentCredit) {
+				if (!parentCredit) {
+					return res.status(400).json({
+						error : 'Parent credit not found.'
+					});
+				}
+				if (parentCredit.balance < req.body.amount) {
+					return res.status(400).json({
+						error : 'New credit amount greater than available parent balance.'
+					});
+				}
+				parentCredit
+					.updateAttributes({
+						balance : (parentCredit.balance - req.body.amount)
+					})
+					.then(function(parentCredit) {
+						Credit
+							.create({
+								amount : req.body.amount,
+								balance : req.body.amount,
+								description : req.body.description,
+								GroupId : req.body.GroupId
+								
+								//TODO: set parent credit id
+								//ParentCreditId : parentCredit.id
+							})
+							.then(function(credit) {
+								return res.json({
+									credit : credit.toJSON()
+								});
+							})
+							.catch(function(err) {
+								return res.staus(400).json({
+									error : JSON.stringify(err)
+								});
+							});
+					})
+					.catch(function(err) {
+						return res.staus(400).json({
+							error : JSON.stringify(err)
+						});
+					})
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : JSON.stringify(err)
+				});
+			});
+	}
 
 	/* NOTE: Balance will be reset to new amount*/
 	var updateAmount = function(req, res) {
@@ -91,6 +149,11 @@ module.exports = function(models, config, utils) {
 						error : 'Credit not found.'
 					})
 				}
+				if (req.body.newBalance > credit.amount) {
+					return res.status(400).json({
+						error : 'Balance cannot be greater than the line of credit.'
+					});
+				}
 				credit
 					.updateAttributes({
 						balance : req.body.newBalance
@@ -118,11 +181,15 @@ module.exports = function(models, config, utils) {
 
   credits.use(utils.auth.authenticate);
 
-  credits.post('/create',create);
+  credits.post('/',create); //create a base credit -- no parent credits
 
+	//create a sub-credit from provided creditId
+  credits.post('/:id/subCredit', createSubCredit) 
+  
   credits.put('/:id/amount', updateAmount);
 
   credits.put('/:id/balance', updateBalance);
+
 
   return credits;	
 };
