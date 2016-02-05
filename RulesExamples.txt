@@ -1,0 +1,79 @@
+RULES EXAMPLE
+
+	[
+
+		{
+			min: 2000,
+			max: 3000,
+			window: Window.Month,
+			approval: ApprovalType.PERCENTANGE_ADMIN,
+			threshold: 50,
+			type: RuleType.WINDOW_LIMIT,
+			side: CreditSide.EXTENDER
+		},
+
+		{
+			min: 3000,
+			window: Window.Month,
+			approval: ApprovalType.DECLINE,
+			type: RuleType.WINDOW_LIMIT,
+			side: CreditSide.EXTENDER
+		},
+
+		{
+			min: 80,
+			max: 300,
+			approval: ApprovalType.NUMBER_MEMBER,
+			threshold: 1,
+			type: RuleType.RANGE_APPROVAL,
+			side: CreditSide.EXTENDER
+		},
+
+		{
+			min: 300,
+			max: 1000,
+			approval: ApprovalType.NUMBER_ADMIN,
+			threshold: 1,
+			type: RuleType.RANGE_APPROVAL,
+			side: CreditSide.EXTENDER
+		},
+
+		{
+			min: 1000,
+			approval: ApprovalType.PERCENTAGE_ADMIN,
+			threshold: 66.666666666,
+			type: RuleType.RANGE_APPROVAL,
+			side: CreditSide.RECEIVER
+		}
+
+	]
+
+
+APPROVAL PROCESS PSEUDO-CODE
+
+	if (newlyApproved || newlySubmitted):
+		while (child || parent):
+			rules = []
+			if (child):
+				rules.concat(child.extenderRules())
+			if (parent):
+				rules.concat(parent.extenderRules())
+			rules = filterByApplicableRules(rules)
+			approval = identifyMostStrictApproval(rules)
+			if (approvalIsRequired(approval)):
+				updateTransactionRecordState()
+				createApprovalRequest()
+				sendPushNotifications()
+				// Wait for approval
+				return
+			child = parent
+			parent = child.parent
+		transferFunds()
+		markAsFullyApproved()
+	else:
+		markAsDeclined()
+
+
+
+
+

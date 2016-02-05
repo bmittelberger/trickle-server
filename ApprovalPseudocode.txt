@@ -1,0 +1,24 @@
+
+APPROVAL PROCESS PSEUDO-CODE
+
+	if (newlyApproved || newlySubmitted):
+		while (child || parent):
+			rules = []
+			if (child):
+				rules.concat(child.extenderRules())
+			if (parent):
+				rules.concat(parent.extenderRules())
+			rules = filterByApplicableRules(rules)
+			approval = identifyMostStrictApproval(rules)
+			if (approvalIsRequired(approval)):
+				updateTransactionRecordState()
+				createApprovalRequest()
+				sendPushNotifications()
+				// Wait for approval
+				return
+			child = parent
+			parent = child.parent
+		transferFunds()
+		markAsFullyApproved()
+	else:
+		markAsDeclined()
