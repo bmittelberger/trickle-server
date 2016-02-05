@@ -3,6 +3,7 @@ var express = require('express'),
 
 module.exports = function(models, config, utils) {
 	var Credit = models.Credit;
+	var Transaction = models.Transaction;
 
 	var listAll = function(req,res) {
 		return res.json({
@@ -88,6 +89,41 @@ module.exports = function(models, config, utils) {
 							error : JSON.stringify(err)
 						});
 					})
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : JSON.stringify(err)
+				});
+			});
+	}
+
+	var retrieveTransactions = function(req, res) {
+		Credit
+			.findById(req.params.id)
+			.then(function(credit) {
+				if (!credit) {
+					return res.status(400).json({
+						error : 'Credit not found.'
+					})
+				}
+				Transaction
+					.findAll({
+						where : {
+							CreditId : credit.id
+						}
+					})
+					.then(function(transactions) {
+						return res.json({
+							transactions : transactions.map(function(transaction) {
+								return transaction.toJSON();
+							});
+						})
+					})
+					.catch(function(err) {
+						return res.status(400).json({
+							error : JSON.stringify(err)
+						});
+					});
 			})
 			.catch(function(err) {
 				return res.status(400).json({
@@ -184,7 +220,11 @@ module.exports = function(models, config, utils) {
   credits.post('/',create); //create a base credit -- no parent credits
 
 	//create a sub-credit from provided creditId
-  credits.post('/:id/subCredit', createSubCredit) 
+  credits.post('/:id/credits', createSubCredit) 
+
+
+  //DOESNT WORK YET -- MUST ADD the CreditId to Transaction list
+  //credits.get('/:id/transactions', retrieveTransactions)
   
   credits.put('/:id/amount', updateAmount);
 
