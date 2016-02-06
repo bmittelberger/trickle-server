@@ -348,7 +348,7 @@ module.exports = function(models, config, utils) {
   users.put('/me', updateMe)
   users.put('/:id', updateUser)
 
-  users.delete('/:id', deleteMe)
+  users.delete('/me', deleteMe)
   users.delete('/:id', deleteUser)
 
   users.get('/me/organizations', retrieveMyOrganizations);
