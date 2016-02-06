@@ -38,6 +38,26 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
+	var retrieveCredit = function(req, res) {
+		Credit
+			.findById(req.params.id)
+			.then(function(credit) {
+				if (!credit) {
+					return res.status(400).json({
+						error : 'Credit not found.'
+					});
+				}
+				return res.json({
+					credit : credit.toJSON()
+				});
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : JSON.stringify(err)
+				});
+			});
+	};
+
 	var createSubCredit = function(req, res) {
 		if (!req.body.GroupId || !req.body.amount ||
 				!req.body.description) {
@@ -116,8 +136,8 @@ module.exports = function(models, config, utils) {
 						return res.json({
 							transactions : transactions.map(function(transaction) {
 								return transaction.toJSON();
-							});
-						})
+							})
+						});
 					})
 					.catch(function(err) {
 						return res.status(400).json({
@@ -218,6 +238,8 @@ module.exports = function(models, config, utils) {
   credits.use(utils.auth.authenticate);
 
   credits.post('/',create); //create a base credit -- no parent credits
+
+  credits.get('/:id', retrieveCredit)
 
 	//create a sub-credit from provided creditId
   credits.post('/:id/credits', createSubCredit) 
