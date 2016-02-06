@@ -23,16 +23,18 @@ module.exports = function(models, config, utils) {
 			.create({
 				name : req.body.name,
 				description : req.body.description,
-			}).then(function(group){
+			})
+			.then(function(group){
 				return res.json(200,{
 					group : group.toJSON()
 				});
-			}).catch(function(err){
+			})
+			.catch(function(err){
 				return res.status(400).json({
 					error : JSON.stringify(err)
 				});
 			});
-	}
+	};
 
 	var retrieveGroup = function(req, res) {
 		var id = req.params.id;
@@ -47,6 +49,47 @@ module.exports = function(models, config, utils) {
 				return res.json({
 					group : group
 				});
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : err
+				});
+			});
+	};
+
+	var createSubGroup = function(req,res) {
+		var error = {
+			group : null
+		};
+		if (!req.body.name || !req.body.description) {
+			return res.json(400,error);
+		}
+		var id = req.params.id;
+		Group
+			.findById(id)
+			.then(function (group) {
+				if (!group) {
+					return res.status(400).json({
+						error : "Group not found."
+					});
+				}
+				Group
+					.create({
+						name : req.body.name,
+						description : req.body.description,
+						GroupId : group.id,
+						OrganizationId : group.OrganizationId
+					})
+					.then(function(group){
+						return res.json(200,{
+							group : group.toJSON()
+						});
+					})
+					.catch(function(err){
+						return res.status(400).json({
+							error : JSON.stringify(err)
+						});
+					});
 			})
 			.catch(function(err) {
 				return res.status(400).json({
@@ -163,6 +206,7 @@ module.exports = function(models, config, utils) {
 	groups.post('/', create);
 
 	groups.get('/:id', retrieveGroup)
+	groups.post('/:id', createSubGroup)
 
 	groups.get('/:id/users', retrieveUsers);
 

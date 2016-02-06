@@ -116,8 +116,8 @@ module.exports = function(models, config, utils) {
 						return res.json({
 							transactions : transactions.map(function(transaction) {
 								return transaction.toJSON();
-							});
-						})
+							})
+						});
 					})
 					.catch(function(err) {
 						return res.status(400).json({

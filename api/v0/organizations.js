@@ -25,7 +25,8 @@ module.exports = function(models, config, utils) {
 				name : req.body.name,
 				description : req.body.description,
 				venmo : req.body.venmo
-			}).then(function(organization){
+			})
+			.then(function(organization){
 				UserOrganization
 					.create({
 						UserId : req.user.id,
@@ -40,7 +41,8 @@ module.exports = function(models, config, utils) {
 				return res.json({
 					organization : organization.toJSON()
 				});
-			}).catch(function(err){
+			})
+			.catch(function(err){
 				return res.status(400).json({
 					error : JSON.stringify(err)
 				});
@@ -179,8 +181,8 @@ module.exports = function(models, config, utils) {
 
   organizations.get('/:id', retrieveOrganization);
 
-  organizations.post('/:id/users', addUser);
   organizations.get('/:id/users', retrieveUsers);
+  organizations.post('/:id/users', addUser);
 
   organizations.get('/:id/groups', retrieveGroups)
 
