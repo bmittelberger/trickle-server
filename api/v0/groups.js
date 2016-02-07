@@ -16,13 +16,15 @@ module.exports = function(models, config, utils) {
 		var error = {
 			group : null
 		};
-		if (!req.body.name || !req.body.description) {
+		if (!req.body.name || !req.body.description ||
+				!req.body.OrganizationId) {
 			return res.json(400,error);
 		}
 		Group
 			.create({
 				name : req.body.name,
 				description : req.body.description,
+				OrganizationId : req.body.OrganizationId
 			})
 			.then(function(group){
 				return res.json(200,{
@@ -206,7 +208,7 @@ module.exports = function(models, config, utils) {
 	groups.post('/', create);
 
 	groups.get('/:id', retrieveGroup)
-	groups.post('/:id', createSubGroup)
+	groups.post('/:id/groups', createSubGroup)
 
 	groups.get('/:id/users', retrieveUsers);
 
