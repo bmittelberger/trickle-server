@@ -5,6 +5,7 @@ module.exports = function(models, config, utils) {
 	var Credit = models.Credit;
 	var Transaction = models.Transaction;
 	var TransactionStatuses = models.Transaction.rawAttributes.status.values;
+	var Promise = models.sequelize.Promise;
 
 	var listAll = function(req,res) {
 		return res.json({
@@ -28,6 +29,7 @@ module.exports = function(models, config, utils) {
 				balance : req.body.amount,
 				description : req.body.description,
 				GroupId : req.body.GroupId,
+				rules : req.body.rules
 			}).then(function(credit){
 				return res.json(200,{
 					credit : credit.toJSON()
@@ -151,12 +153,76 @@ module.exports = function(models, config, utils) {
 			});
 	}
 
-	/* NOTE: Balance will be reset to new amount*/
-	var updateAmount = function(req, res) {
-		if (!req.body.newAmount) {
+	var checkUpdateValidity = function(credit,newCredit) {
+		return new Promise(function(resolve, reject) {
+			if (!credit.ParentCreditId || !newCredit.amount) {
+				var validity =  {
+					valid : true,
+				};
+				resolve(validity);
+			}
+			if (!newCredit.amount && newCredit.balance &&
+					newCredit.balance > credit.amount) {
+				var validity = {
+					valid : false,
+					error : 'New balance cannot exceed current credit line amount'
+				};
+				resolve(validity);
+			}
+			Credit
+				.findById(credit.ParentCreditId)
+				.then(function(parentCredit) {
+					availableAmount = parentCredit.balance + credit.amount;
+					if (availableAmount - newCredit.amount < 0) {
+						var validity = {
+							valid : false,
+							error : 'Insufficient funds in parent credit balance for new amount.'
+						};
+						resolve(validity);
+					}
+					newParentBalance = parentCredit.balance + credit.amount 
+														 - newCredit.amount;
+					parentCredit
+						.updateAttributes({
+							balance : newParentBalance
+						})
+						.then(function(parentCredit) {
+							validity = {
+								valid: true,
+								parentCredit : parentCredit
+							};
+							resolve(validity)
+						});
+				})
+				.catch(function(err) { 
+					validity = {
+						valid: false,
+						error : JSON.stringify(err)
+					};
+					resolve(validity);
+				})
+		});
+	};
+
+	var updateCredit = function(req, res) {
+		newCredit = req.body;
+		if (newCredit.amount && 
+				Number(newCredit.amount) != newCredit.amount) {
 			return res.status(400).json({
-				error : 'Invalid request body.'
+				error: 'Invalid format for new amount.'
 			});
+		}
+		if (newCredit.balance && 
+				Number(newCredit.balance) != newCredit.balance) {
+			return res.status(400).json({
+				error: 'Invalid format for new balance.'
+			});
+		}
+		if (newCredit.amount && newCredit.balance &&
+				newCredit.balance > newCredit.amount) {
+			return res.status(400).json({
+				error : 'New balance cannot exceed new credit line amount.'
+			})
 		}
 		Credit
 			.findById(req.params.id)
@@ -166,23 +232,44 @@ module.exports = function(models, config, utils) {
 						error : 'Credit not found.'
 					})
 				}
-				credit
-					.updateAttributes({
-						amount : req.body.newAmount,
-						balance : req.body.newAmount
-					})
-					.then(function(credit) {
-						return res.json({
-							credit : credit.toJSON()
-						});
-					})
-					.catch(function(err) {
+				var validityPromise = checkUpdateValidity(credit,newCredit);
+				validityPromise.then(function(validity) {
+					if (!validity.valid) {
 						return res.status(400).json({
-							error : JSON.stringify(err)
+							error : validity.error
+						})
+					}
+					if (newCredit.amount && !newCredit.balance) {
+						var newBalance = newCredit.amount - credit.amount + credit.balance;
+						if (newBalance < 0) {
+							return res.status(400).json({
+								error : 'Balance constraints prevent new amount.'
+							})
+						} else {
+							newCredit.balance = newBalance;
+						}
+					}
+					credit
+						.updateAttributes({
+							amount : newCredit.amount != null ? newCredit.amount : credit.amount,
+							balance : newCredit.balance != null ? newCredit.balance : credit.balance,
+							description : newCredit.description ? newCredit.description : credit.description,
+							rules : newCredit.rules ? newCredit.rules : credit.rules
+						})
+						.then(function(credit) {
+							return res.json({
+								credit : credit.toJSON()
+							});
+						})
+						.catch(function(err) {
+							return res.status(400).json({
+								error : JSON.stringify(err)
+							});
 						});
-					});
+				});
 			})
 			.catch(function(err) {
+				console.log('here8');
 				return res.status(400).json({
 					error : JSON.stringify(err)
 				});
@@ -230,10 +317,6 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
-
-
-
-
 	var retrieveParentCredit = function(credit) {
 		Credit
 			.findById(credit.ParentCreditId)
@@ -256,12 +339,11 @@ module.exports = function(models, config, utils) {
 	//create a sub-credit from provided creditId
   credits.post('/:id/credits', createSubCredit);
 
-  //DOESNT WORK YET -- MUST ADD the CreditId to Transaction list
   credits.get('/:id/transactions', retrieveTransactions)
   
-  credits.put('/:id/amount', updateAmount);
+  credits.put('/:id', updateCredit);
 
-  credits.put('/:id/balance', updateBalance);
+  //credits.put('/:id/balance', updateBalance);
 
 
   return credits;	

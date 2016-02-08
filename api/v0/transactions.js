@@ -33,7 +33,7 @@ module.exports = function(models, config, utils) {
 			}).then(function(transaction){
 				return res.json({
 					transaction : transaction
-				})
+				});
 			}).catch(function(err){
 				return res.json(400,{
 					error : err
@@ -41,10 +41,12 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
-	var updateStatus = function(req, res) {
-		if (!req.body.status) {
-			return res.status(400).json({
-				error : 'Invalid request body.'
+	var updateTransaction = function(req, res) {
+		t = req.body;
+			if (t.status && (t.status != 'PENDING' &&
+					t.status != 'APPROVED' && t.status != 'DECLINED')) {
+				return res.status(400).json({
+					error: 'Invalid new status value'
 			});
 		}
 		Transaction
@@ -55,22 +57,11 @@ module.exports = function(models, config, utils) {
 						error : 'Transaction not found.'
 					})
 				}
-				var statusIndex;
-				if (req.body.status == 'PENDING') {
-					statusIndex = 0;
-				} else if (req.body.status == 'APPROVED') {
-					statusIndex = 1;
-				} else if (req.body.status == 'DECLINED') {
-					statusIndex = 2;
-				} else {
-					return res.status(400).json({
-						error : 'Invalid status value.'
-					});
-				}
 				transaction
 					.updateAttributes({
-						status : Transaction.rawAttributes.status.values[statusIndex],
-						message : req.body.message ? req.body.message : transaction.message
+						status: t.status ? t.status : transaction.status,
+						message: t.message ? t.message : transaction.message
+
 					})
 					.then(function(transaction) {
 						return res.json({
@@ -96,7 +87,7 @@ module.exports = function(models, config, utils) {
   transactions.get('/', listAll);
   transactions.post('/', create);
 
-  transactions.put('/:id/status', updateStatus);
+  transactions.put('/:id/', updateTransaction);
 
 
 	return transactions;
