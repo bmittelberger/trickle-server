@@ -6,6 +6,7 @@ module.exports = function(models, config, utils) {
 	var Transaction = models.Transaction;
 	var Credit = models.Credit;
 	var UserGroup = models.UserGroup;
+	var User = models.User;
 
 	var listAll = function(req,res) {
 		return res.json({
@@ -160,6 +161,69 @@ module.exports = function(models, config, utils) {
 		});
 	};
 
+	var addUser = function (req, res) {
+		if (!req.body.UserId) {
+			return res.json(400,{
+				error : 'invalid request body'
+			})
+		}
+		User
+			.findById(req.body.UserId)	
+			.then(function(user) {
+				if (!user) {
+					return res.status(400).json({
+						error : 'User not found.'
+					});
+				}
+				UserGroup
+					.create({
+						UserId : req.body.UserId,
+						GroupId : req.params.id,
+						isAdmin : req.body.isAdmin === 'true'
+					})
+					.then(function(userGroup) {
+						return res.json({
+							UserGroup : userGroup.toJSON()
+						});
+					})
+					.catch(function(err) {
+						return res.status(400).json({
+							error : JSON.stringify(err)
+						});
+					});
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : JSON.stringify(err)
+				})
+			});
+	};
+
+	var removeUser = function (req, res) {
+		if (!req.body.UserId) {
+			return res.json(400,{
+				error : 'invalid request body'
+			})
+		}
+		UserGroup
+			.destroy({
+				where: {
+					UserId: req.body.UserId,
+					GroupId: req.params.id,
+				}
+			})
+			.then(function(count) {
+				return res.json({
+					countRemoved : count
+				});
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : JSON.stringify(err)
+				});
+			});
+	};
+
 	var retrieveTransactions = function(req, res) {
 		Group
 		.findById(req.params.id)
@@ -240,6 +304,8 @@ module.exports = function(models, config, utils) {
 	groups.post('/:id/groups', createSubGroup)
 
 	groups.get('/:id/users', retrieveUsers);
+	groups.post('/:id/users', addUser);
+	groups.delete('/:id/users', removeUser);
 
 	groups.get('/:id/transactions', retrieveTransactions);
 

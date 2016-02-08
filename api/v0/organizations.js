@@ -72,18 +72,13 @@ module.exports = function(models, config, utils) {
 
 
 	var addUser = function (req, res) {
-		var error = {
-			user : null
-		}
-		if (!req.body.userId) {
+		if (!req.body.UserId) {
 			return res.json(400,{
 				error : 'invalid request body'
 			})
 		}
-		var id = parseInt(req.params.id, 10);
-		var newUserId = parseInt(req.body.userId, 10);
 		User
-			.findById(newUserId)	
+			.findById(req.user.id)	
 			.then(function(user) {
 				if (!user) {
 					return res.status(400).json({
@@ -92,8 +87,8 @@ module.exports = function(models, config, utils) {
 				}
 				UserOrganization
 					.create({
-						UserId : newUserId,
-						OrganizationId : id,
+						UserId : req.body.UserId,
+						OrganizationId : req.params.id,
 						isAdmin : req.body.isAdmin === 'true'
 					})
 					.then(function(relation) {
@@ -112,6 +107,31 @@ module.exports = function(models, config, utils) {
 				return res.status(400).json({
 					error : JSON.stringify(err)
 				})
+			});
+	};
+
+	var removeUser = function (req, res) {
+		if (!req.body.UserId) {
+			return res.json(400,{
+				error : 'invalid request body'
+			})
+		}
+		UserOrganization
+			.destroy({
+				where: {
+					UserId: req.body.UserId,
+					OrganizationId: req.params.id,
+				}
+			})
+			.then(function(count) {
+				return res.json({
+					countRemoved : count
+				});
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : JSON.stringify(err)
+				});
 			});
 	};
 
@@ -179,10 +199,13 @@ module.exports = function(models, config, utils) {
   organizations.get('/', retrieveAll);
   organizations.post('/', create);
 
+  //organizations.use(utils.auth.authenticateOrganizationAdmin);
+
   organizations.get('/:id', retrieveOrganization);
 
   organizations.get('/:id/users', retrieveUsers);
   organizations.post('/:id/users', addUser);
+  organizations.delete('/:id/users', removeUser);
 
   organizations.get('/:id/groups', retrieveGroups)
 
