@@ -5,6 +5,7 @@ module.exports = function(models, config, utils) {
 	var Group = models.Group;
 	var Transaction = models.Transaction;
 	var Credit = models.Credit;
+	var UserGroup = models.UserGroup;
 
 	var listAll = function(req,res) {
 		return res.json({
@@ -20,13 +21,26 @@ module.exports = function(models, config, utils) {
 				!req.body.OrganizationId) {
 			return res.json(400,error);
 		}
+		pId = req.body.ParentGroupId;
 		Group
 			.create({
 				name : req.body.name,
 				description : req.body.description,
-				OrganizationId : req.body.OrganizationId
+				OrganizationId : req.body.OrganizationId,
+				ParentGroupId : pId ? pId : null 
 			})
 			.then(function(group){
+				UserGroup
+					.create({
+						UserId : req.user.id,
+						GroupId : group.toJSON().id,
+						isAdmin : true
+					})
+					.catch(function(err) {
+						return res.status(400).json({
+							error : JSON.stringify(err)
+						});
+					});
 				return res.json(200,{
 					group : group.toJSON()
 				});
@@ -79,10 +93,21 @@ module.exports = function(models, config, utils) {
 					.create({
 						name : req.body.name,
 						description : req.body.description,
-						GroupId : group.id,
+						ParentGroupId : group.id,
 						OrganizationId : group.OrganizationId
 					})
 					.then(function(group){
+						UserGroup
+							.create({
+								UserId : req.user.id,
+								GroupId : group.toJSON().id,
+								isAdmin : true
+							})
+							.catch(function(err) {
+								return res.status(400).json({
+									error : JSON.stringify(err)
+								});
+							});
 						return res.json(200,{
 							group : group.toJSON()
 						});

@@ -8,7 +8,9 @@ var models = require('../models'),
     UserOrganization = models.UserOrganization,
     UserGroup = models.UserGroup;
 
-models.sequelize.sync();
+models.sequelize.sync({
+	force: true
+});
 
 // Organization.sync()
 
