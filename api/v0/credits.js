@@ -276,47 +276,6 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
-	var updateBalance = function(req, res) {
-		if (!req.body.newBalance) {
-			return res.status(400).json({
-				error : 'Invalid request body.'
-			});
-		}
-		Credit
-			.findById(req.params.id)
-			.then(function(credit) {
-				if (!credit) {
-					return res.status(400).json({
-						error : 'Credit not found.'
-					})
-				}
-				if (req.body.newBalance > credit.amount) {
-					return res.status(400).json({
-						error : 'Balance cannot be greater than the line of credit.'
-					});
-				}
-				credit
-					.updateAttributes({
-						balance : req.body.newBalance
-					})
-					.then(function(credit) {
-						return res.json({
-							credit : credit.toJSON()
-						});
-					})
-					.catch(function(err) {
-						return res.status(400).json({
-							error : JSON.stringify(err)
-						});
-					});
-			})
-			.catch(function(err) {
-				return res.status(400).json({
-					error : JSON.stringify(err)
-				});
-			});
-	};
-
 	var retrieveParentCredit = function(credit) {
 		Credit
 			.findById(credit.ParentCreditId)
