@@ -101,15 +101,16 @@ module.exports = function(models, config, utils) {
 	};
 
 	var retrieveUsers = function(req, res) {
+		var id = req.params.id
 		Group
-		.findById(req.params.id)
+		.findById(id)
 		.then(function(group) {
 			if (!group) {
 				return res.status(400).json({
 					error : 'Group not found.'
 				});
 			}
-			groups
+			group
 				.getUsers()
 				.then(function(users) {
 					return res.json({
@@ -120,12 +121,15 @@ module.exports = function(models, config, utils) {
 				})
 				.catch(function(err) {
 					return res.status(400).json({
+						here : 1,
 						error : JSON.stringify(err)
 					});
 				})
 		})
 		.catch(function(err) {
 			return res.status(400).json({
+				id : req.params.id,
+				here : 2,
 				error : JSON.stringify(err)
 			});
 		});

@@ -7,7 +7,7 @@ module.exports = function(models, config, utils) {
 
 	var listAll = function(req,res) {
 		return res.json({
-			sup : "sup credits"
+			error : "there's no reason you should need to see ALL organizations"
 		})
 	};
 

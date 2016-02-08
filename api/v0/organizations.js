@@ -98,7 +98,7 @@ module.exports = function(models, config, utils) {
 					})
 					.then(function(relation) {
 						return res.json({
-							userOrganization : relation.toJSON()
+							UserOrganization : relation.toJSON()
 						});
 					})
 					.catch(function(err) {
