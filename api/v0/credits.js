@@ -4,6 +4,7 @@ var express = require('express'),
 module.exports = function(models, config, utils) {
 	var Credit = models.Credit;
 	var Transaction = models.Transaction;
+	var TransactionStatuses = models.Transaction.rawAttributes.status.values;
 
 	var listAll = function(req,res) {
 		return res.json({
@@ -88,10 +89,8 @@ module.exports = function(models, config, utils) {
 								amount : req.body.amount,
 								balance : req.body.amount,
 								description : req.body.description,
-								GroupId : req.body.GroupId
-								
-								//TODO: set parent credit id
-								//ParentCreditId : parentCredit.id
+								GroupId : req.body.GroupId,
+								ParentCreditId : parentCredit.id
 							})
 							.then(function(credit) {
 								return res.json({
@@ -190,7 +189,6 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
-
 	var updateBalance = function(req, res) {
 		if (!req.body.newBalance) {
 			return res.status(400).json({
@@ -233,20 +231,33 @@ module.exports = function(models, config, utils) {
 	};
 
 
+
+
+
+	var retrieveParentCredit = function(credit) {
+		Credit
+			.findById(credit.ParentCreditId)
+			.then(function(parentCredit) {
+				return parentCredit;
+			})
+			.catch(function(err) {
+				return null;
+			});
+	};
+
   credits.get('/', listAll);
 
   credits.use(utils.auth.authenticate);
 
   credits.post('/',create); //create a base credit -- no parent credits
 
-  credits.get('/:id', retrieveCredit)
+  credits.get('/:id', retrieveCredit);
 
 	//create a sub-credit from provided creditId
-  credits.post('/:id/credits', createSubCredit) 
-
+  credits.post('/:id/credits', createSubCredit);
 
   //DOESNT WORK YET -- MUST ADD the CreditId to Transaction list
-  //credits.get('/:id/transactions', retrieveTransactions)
+  credits.get('/:id/transactions', retrieveTransactions)
   
   credits.put('/:id/amount', updateAmount);
 

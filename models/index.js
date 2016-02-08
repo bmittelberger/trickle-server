@@ -18,7 +18,6 @@ var models = [
   'Group',
   'User',
   'Transaction',
-  'Rule',
   'Credit'
 ];
 models.forEach(function(model) {
@@ -38,7 +37,7 @@ relations.forEach(function(relation) {
   m.Organization.hasOne(m.Group);
   m.Organization.belongsToMany(m.User, {through: m.UserOrganization});
   
-  m.Group.belongsTo(m.Group);
+  m.Group.belongsTo(m.Group, {foreignKey : 'ParentGroupId'});
   m.Group.belongsTo(m.Organization);
   m.Group.belongsToMany(m.User, {through: m.UserGroup});
   
@@ -47,10 +46,11 @@ relations.forEach(function(relation) {
   
   m.Transaction.belongsTo(m.User);
   m.Transaction.belongsTo(m.Group);
+  m.Transaction.belongsTo(m.Credit);
   
+  m.Credit.belongsTo(m.Credit, {foreignKey : 'ParentCreditId'});
   m.Credit.belongsTo(m.Group);
   
-  m.Rule.belongsTo(m.Credit);
 })(module.exports);
 
 module.exports.sequelize = sequelize;

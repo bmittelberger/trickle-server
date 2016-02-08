@@ -8,6 +8,9 @@ module.exports = function(sequelize, DataTypes) {
     },
     description: {
       type: DataTypes.STRING
+    },
+    rules: {
+      type: DataTypes.JSON
     }
   });
 };

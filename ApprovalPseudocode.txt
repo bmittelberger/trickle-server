@@ -22,3 +22,6 @@ APPROVAL PROCESS PSEUDO-CODE
 		markAsFullyApproved()
 	else:
 		markAsDeclined()
+
+
+

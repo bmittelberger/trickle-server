@@ -1,3 +1,5 @@
+var transactionUtils = require('../utils/transaction.js');
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('Transaction', {
     amount: {
@@ -18,6 +20,12 @@ module.exports = function(sequelize, DataTypes) {
     },
     processedAt: {
       type: DataTypes.DATE,
+    }
+  }, {
+    hooks: {
+      afterCreate: function(transaction, options, cb) {
+        transactionUtils.processTransaction(transaction, cb);
+      }
     }
   });
 };
