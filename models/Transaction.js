@@ -25,40 +25,37 @@ module.exports = function(sequelize, DataTypes) {
     hooks: {
       afterCreate: function(transaction, options, cb) {
         // transactionUtils.processTransaction(transaction, cb);
-        setTimeout(function() { 
-          if (transaction.amount > 250) {
-            transaction
-              .updateAttributes({
-                status : 'DECLINED',
-                message : 'The posted amount was over the demo amount of $100. Please try not being so greedy.'
-              })
-              .then(function(transaction) {
-                // cb();
-              })
-              .catch(function(err) {
-                // cb();
-              });
-          } else {
-            venmoUtils.reimburse(transaction)
-              .then(function(reimbursement) { 
-                transaction
-                  .updateAttributes({
-                    status : 'APPROVED',
-                    message : 'Your transaction passed the auto-reimburse rules.'
-                  })
-                  .then(function(transaction) {
-                    // cb();
-                  })
-                  .catch(function(err) {
-                    // cb();
-                  });
-              })
-              .catch(function(err) {
-                // cb();
-              });   
-          }
-        }, 8 * 1000);
-        cb();
+        if (transaction.amount > 250) {
+          transaction
+            .updateAttributes({
+              status : 'DECLINED',
+              message : 'The posted amount was over the demo amount of $100. Please try not being so greedy.'
+            })
+            .then(function(transaction) {
+              cb();
+            })
+            .catch(function(err) {
+              cb();
+            });
+        } else if (transaction.amount <= 100 {
+          venmoUtils.reimburse(transaction)
+            .then(function(reimbursement) { 
+              transaction
+                .updateAttributes({
+                  status : 'APPROVED',
+                  message : 'Your transaction passed the auto-reimburse rules.'
+                })
+                .then(function(transaction) {
+                  cb();
+                })
+                .catch(function(err) {
+                  cb();
+                });
+            })
+            .catch(function(err) {
+              cb();
+            });   
+        }
       }
     }
   });
