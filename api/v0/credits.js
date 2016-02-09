@@ -131,7 +131,8 @@ module.exports = function(models, config, utils) {
 					.findAll({
 						where : {
 							CreditId : credit.id
-						}
+						},
+						order: '"createdAt" DESC' 
 					})
 					.then(function(transactions) {
 						return res.json({

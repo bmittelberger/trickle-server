@@ -12,7 +12,7 @@ module.exports = function(models, config, utils) {
 
 	var create = function(req, res) {
 		var error = {
-			transaction : null
+			error : 'Transaction could not be created'
 		};
 		if (!req.body.amount || !req.body.description ||
 			  !req.body.GroupId || !req.body.CreditId) {
@@ -36,7 +36,7 @@ module.exports = function(models, config, utils) {
 				});
 			}).catch(function(err){
 				return res.json(400,{
-					error : err
+					error : JSON.stringify(err)
 				})
 			});
 	};
