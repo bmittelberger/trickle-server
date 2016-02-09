@@ -4,7 +4,7 @@ var models = require('./models'),
     Transaction = models.Transaction,
     transactionUtils = utils.transaction;
     
-Transaction.findById(5).then(function(t) {
+Transaction.findById(6).then(function(t) {
   console.log(t.toJSON());
   transactionUtils.processTransaction(t, function() {
     console.log('continue on after save hook');

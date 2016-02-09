@@ -214,33 +214,13 @@ module.exports = function(models, config, utils) {
       });
   };
 
-
   var addMeToGroup = function(req, res) {
     addUserToGroup(req.user,req,res);
   }
 
-  var addToGroup = function(req, res) {
-    id = req.params.id;
-    User
-      .findById(id)
-      .then(function(user) {
-        if (!user) {
-          return res.status(400).json( {
-            error : "User not found."
-          })
-        }
-        addUserToGroup(user.toJSON(),req,res);
-      })
-      .catch(function(err) { 
-        return res.status(400).json({
-          error : JSON.stringify(err)
-        });
-      })
-  }
-
 //need to check if groupId is valid. need to check if user is already in group
   var addUserToGroup = function(user, req, res) {
-    if (!req.body.groupId) {
+    if (!req.body.GroupId) {
       return res.status(400).json({
         error : 'Invalid request body'
       });
@@ -249,11 +229,37 @@ module.exports = function(models, config, utils) {
       .create({
         isAdmin : req.body.isAdmin === 'true',
         UserId : user.id,
-        GroupId : req.body.groupId
+        GroupId : req.body.GroupId
       })
       .then(function(userGroup) {
         return res.json({
           userGroup : userGroup  
+        });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error : JSON.stringify(err)
+        });
+      })
+  };
+
+  var removeMeFromGroup = function(req, res) {
+    if (!req.body.GroupId) {
+      return res.status(400).json({
+        error : 'Invalid request body'
+      });
+    }
+    console.log(req.body.GroupId);
+    UserGroup
+      .destroy({
+        where: {
+          UserId: req.user.id,
+          GroupId: req.body.GroupId
+        }
+      })
+      .then(function(userGroup) {
+        return res.json({
+          countDeleted : userGroup  
         });
       })
       .catch(function(err) {
@@ -358,7 +364,10 @@ module.exports = function(models, config, utils) {
   users.get('/:id/groups', retrieveGroups);
 
   users.post('/me/groups', addMeToGroup);
-  users.post('/:id/groups', addToGroup);
+  // users.post('/:id/groups', addToGroup);
+
+  users.delete('/me/groups', removeMeFromGroup);
+  // users.delete('/:id/groups', removeFromGroup);
 
   users.get('/me/transactions', retrieveMyTransactions);
   users.get('/:id/transactions', retrieveTransactions);
