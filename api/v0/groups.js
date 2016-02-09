@@ -74,6 +74,34 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
+	var updateGroup = function(req, res) {
+		Group
+			.findById(req.params.id)
+			.then(function (group) {
+				if (!group) {
+					return res.status(400).json({
+						error : "Group not found."
+					});
+				}
+				group
+					.setAttributes({
+						name : req.body.name ? req.body.name : group.name,
+						description : req.body.description ? req.body.description : group.description
+					})
+					.then(function(group) {
+						return res.json({
+							group : group
+						})
+					})
+			})
+			.catch(function(err) {
+				return res.status(400).json({
+					error : err
+				});
+			});
+	};
+	
+
 	var createSubGroup = function(req,res) {
 		var error = {
 			group : null
@@ -336,6 +364,7 @@ module.exports = function(models, config, utils) {
 	groups.post('/', create);
 
 	groups.get('/:id', retrieveGroup)
+
 	groups.get('/:id/users', retrieveUsers);
 	groups.get('/:id/groups', retrieveSubgroups);
 	groups.get('/:id/transactions', retrieveTransactions);
@@ -347,7 +376,7 @@ module.exports = function(models, config, utils) {
 	groups.delete('/:id/users', removeUser);
 
 	groups.post('/:id/groups', createSubGroup)
-	
+	groups.put('/:id', updateGroup);
 
 
 	return groups;	

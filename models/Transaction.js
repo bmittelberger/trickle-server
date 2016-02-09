@@ -24,7 +24,7 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     hooks: {
       // afterCreate: function(transaction, options, cb) {
-      //   //transactionUtils.processTransaction(transaction, cb);
+      //   transactionUtils.processTransaction(transaction, cb);
       // }
     }
   });
