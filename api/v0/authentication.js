@@ -9,7 +9,8 @@ module.exports = function(models, config, utils) {
     var error = {
       authenticated: false,
       token: null,
-      user: null
+      user: null,
+      error: 'Failed to login. Email or password may be incorrect.'
     };
     if (!req.body.email || !req.body.password) {
       return res.json(400, error);
