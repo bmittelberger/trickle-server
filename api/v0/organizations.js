@@ -199,15 +199,18 @@ module.exports = function(models, config, utils) {
   organizations.get('/', retrieveAll);
   organizations.post('/', create);
 
-  //organizations.use(utils.auth.authenticateOrganizationAdmin);
 
   organizations.get('/:id', retrieveOrganization);
 
   organizations.get('/:id/users', retrieveUsers);
+
+  organizations.get('/:id/groups', retrieveGroups)
+  
+  organizations.use('/:id', utils.auth.authenticateOrganizationAdmin);
+
   organizations.post('/:id/users', addUser);
   organizations.delete('/:id/users', removeUser);
 
-  organizations.get('/:id/groups', retrieveGroups)
 
   return organizations;	
 };

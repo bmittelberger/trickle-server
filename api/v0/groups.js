@@ -224,6 +224,41 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
+	var retrieveSubgroups = function(req, res) {
+		Group
+		.findById(req.params.id)
+		.then(function(group) {
+			if (!group) {
+				return res.status(400).json({
+					error : 'Parent group not found.'
+				});
+			}
+			Group
+				.findAll({
+					where: {
+						ParentGroupId: req.params.id
+					}
+				})
+				.then(function(groups) {
+					return res.json({
+						groups : groups.map(function(group){
+							return group.toJSON();
+						})
+					});
+				})
+				.catch(function(err) {
+					return res.status(400).json({
+						error : JSON.stringify(err)
+					});
+				})
+		})
+		.catch(function(err) {
+			return res.status(400).json({
+				error : JSON.stringify(err)
+			});
+		});
+	};
+
 	var retrieveTransactions = function(req, res) {
 		Group
 		.findById(req.params.id)
@@ -301,15 +336,19 @@ module.exports = function(models, config, utils) {
 	groups.post('/', create);
 
 	groups.get('/:id', retrieveGroup)
-	groups.post('/:id/groups', createSubGroup)
-
 	groups.get('/:id/users', retrieveUsers);
-	groups.post('/:id/users', addUser);
+	groups.get('/:id/groups', retrieveSubgroups);
+	groups.get('/:id/transactions', retrieveTransactions);
+	groups.get('/:id/credits', retrieveCredits);
+
+	groups.use('/:id', utils.auth.authenticateGroupAdmin);
+
+  groups.post('/:id/users', addUser);
 	groups.delete('/:id/users', removeUser);
 
-	groups.get('/:id/transactions', retrieveTransactions);
+	groups.post('/:id/groups', createSubGroup)
+	
 
-	groups.get('/:id/credits', retrieveCredits);
 
 	return groups;	
 };

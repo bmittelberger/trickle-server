@@ -2,7 +2,8 @@ var jwt = require('jsonwebtoken')
 
 module.exports = function(models, config) {
   var User = models.User;
-  var Organization = models.Organization;
+  var UserOrganization = models.UserOrganization;
+  var UserGroup = models.UserGroup;
   var error = {
     error: 'Not authorized.'
   };
@@ -28,24 +29,49 @@ module.exports = function(models, config) {
   };
   
   var authenticateOrganizationAdmin = function(req, res, next) {
-    // console.log ("in authenticateOrganizationAdmin");
-    // console.log(req);
-    // console.log (Organization);
+    UserOrganization
+      .find({
+        where: {
+          UserId: req.user.id,
+          OrganizationId: req.params.id
+        }
+      })
+      .then(function(userOrganization) {
+        if(userOrganization && userOrganization.isAdmin == true){
+          next();
+        } else {
+          return res.status(403).json(error);
+        }
+      })
+      .catch(function() {
+        return res.status(403).json(error);
+      });
+  };
 
-    // Organization
-    //   .findById(req.params.id)
-    //   .then(function(organization) {
-    //     console.log("here 1");
-    //     console.log(organization);
-    //   })
-    //   .catch(function() {
-    //     console.log("error 2");
-    //     return res.status(403).json(error);
-    //   });
+
+  var authenticateGroupAdmin = function(req, res, next) {
+    UserGroup
+      .find({
+        where: {
+          UserId: req.user.id,
+          GroupId: req.params.id
+        }
+      })
+      .then(function(userGroup) {
+        if(userGroup && userGroup.isAdmin == true){
+          next();
+        } else {
+          return res.status(403).json(error);
+        }
+      })
+      .catch(function() {
+        return res.status(403).json(error);
+      });
   };
   
   return {
     authenticate: authenticate,
-    authenticateOrganizationAdmin: authenticateOrganizationAdmin
+    authenticateOrganizationAdmin: authenticateOrganizationAdmin,
+    authenticateGroupAdmin: authenticateGroupAdmin
   };
 };
