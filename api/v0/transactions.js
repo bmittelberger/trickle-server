@@ -26,7 +26,7 @@ module.exports = function(models, config, utils) {
 				amount : req.body.amount,
 				description : req.body.description,
 				message : req.body.message,
-				status : Transaction.rawAttributes.status.values[0],
+				status : 'PENDING',
 				UserId : req.user.id,
 				GroupId : req.body.GroupId, 
 				CreditId : req.body.CreditId
@@ -37,6 +37,26 @@ module.exports = function(models, config, utils) {
 			}).catch(function(err){
 				return res.json(400,{
 					error : err
+				})
+			});
+	};
+
+	var retrieveTransaction = function(req, res) {
+		Transaction
+			.findById(req.params.id)
+			.then(function(transaction) {
+				if (!transaction) {
+					return res.status(400).json( {
+						error : 'Transaction not found.'
+					});
+				}
+				return res.json({
+					transaction : transaction
+				});
+			})
+			.catch(function(err) { 
+				return res.status(400).json({
+					error : JSON.stringify(err)
 				})
 			});
 	};
@@ -86,6 +106,9 @@ module.exports = function(models, config, utils) {
 
   transactions.get('/', listAll);
   transactions.post('/', create);
+
+  transactions.get('/:id', retrieveTransaction);
+  // transactions.post('/', createDemo);
 
   transactions.put('/:id/', updateTransaction);
 

@@ -6,6 +6,6 @@ module.exports = function(models, config) {
   return {
     auth: auth(models, config),
     transaction: transaction(models, config),
-    venmo: venmo(models, config)
+    venmo: venmo
   };
 };
