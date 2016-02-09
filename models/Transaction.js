@@ -37,7 +37,7 @@ module.exports = function(sequelize, DataTypes) {
             .catch(function(err) {
               cb();
             });
-        } else if (transaction.amount <= 100 {
+        } else if (transaction.amount <= 100) {
           venmoUtils.reimburse(transaction)
             .then(function(reimbursement) { 
               transaction
