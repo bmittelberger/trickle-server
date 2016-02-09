@@ -302,7 +302,6 @@ module.exports = function(models, config, utils) {
   
   credits.put('/:id', updateCredit);
 
-  //credits.put('/:id/balance', updateBalance);
 
 
   return credits;	
