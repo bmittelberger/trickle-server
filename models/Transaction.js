@@ -55,6 +55,8 @@ module.exports = function(sequelize, DataTypes) {
             .catch(function(err) {
               cb();
             });   
+        } else {
+          cb();
         }
       }
     }
