@@ -46,7 +46,17 @@ module.exports = function(sequelize, DataTypes) {
                   message : 'Your transaction passed the auto-reimburse rules.'
                 })
                 .then(function(transaction) {
-                  cb();
+                  transaction
+                    .getCredit()
+                    .then(function(credit) {
+                      credit
+                      .updateAttributes( {
+                        balance : credit.balance - transaction.amount
+                      })
+                      .then(function(credit) {
+                        cb();
+                      })
+                    })
                 })
                 .catch(function(err) {
                   cb();
