@@ -211,6 +211,5 @@ module.exports = function(models, config, utils) {
   organizations.post('/:id/users', addUser);
   organizations.delete('/:id/users', removeUser);
 
-
   return organizations;	
 };
