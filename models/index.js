@@ -18,7 +18,8 @@ var models = [
   'Group',
   'User',
   'Transaction',
-  'Credit'
+  'Credit',
+  'Approval'
 ];
 models.forEach(function(model) {
   module.exports[model] = sequelize.import(__dirname + '/' + model);
@@ -50,6 +51,9 @@ relations.forEach(function(relation) {
   
   m.Credit.belongsTo(m.Credit, {foreignKey : 'ParentCreditId'});
   m.Credit.belongsTo(m.Group);
+  
+  m.Approval.belongsTo(m.User);
+  m.Approval.belongsTo(m.Transaction);
   
 })(module.exports);
 

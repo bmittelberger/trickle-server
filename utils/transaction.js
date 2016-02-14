@@ -41,7 +41,7 @@ module.exports = function(models, config) {
   var Transaction = models.Transaction;
   var Promise = models.sequelize.Promise;
   var UserGroup = models.UserGroup;
-  // var Credit = models.Credit;
+  var Credit = models.Credit;
   
   var cumulativeTransactionAmountWithinWindow = function(transaction, credit, rule) {
     return Transaction.sum('amount', {
@@ -231,7 +231,8 @@ module.exports = function(models, config) {
   };
   
   var processTransaction = function(transaction, cb) {
-    transaction.getCredit().then(function(credit) {
+    var stateInfo = transaction.stateInfo;
+    Credit.findById(stateInfo.currentState.CreditId).then(function(credit) {
       if (transaction.amount > credit.balance) {
         console.log("REIMBURSEMENT REQUEST DECLINED -- GREATER THAN BALANCE");
         transaction
@@ -246,10 +247,12 @@ module.exports = function(models, config) {
         var rulePromises = getRulePromises(transaction, credit);
         Promise.all(rulePromises)
           .then(function(rules) {
+            console.log(rules);
             var relevantRules = rules.filter(function(rule) {
               return (!rule.min || (rule.min <= rule.amount)) &&
                     (!rule.max || (rule.max > rule.amount));
             });
+            console.log(relevantRules);
             var strictestRulePromise = getStrictestRule(relevantRules, credit);
             strictestRulePromise.then(function(approvalData) {
               if (!approvalData) {
@@ -269,6 +272,13 @@ module.exports = function(models, config) {
                   if (approvalData.requiredUserNumber > approvalData.requiredUsers.length) {
                     approvalData.requiredUserNumber = approvalData.requiredUsers.length;
                   }
+                  var updatedState = transaction.stateInfo;
+                  updatedState.currentState.currentRule = approvalData;
+                  transaction
+                    .updateAttributes({
+                      stateInfo: updatedState
+                    });
+                  console.log(transaction.stateInfo);
                   // console.log("REIMBURSEMENT REQUEST PENDING, SENDING OUT APPROVAL TO USERS: " + approvalData.requiredUsers);
                   //SEND OUT APPROVAL REQUESTS TO USERS LISTED IN approvalData
                 }

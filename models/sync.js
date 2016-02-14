@@ -3,10 +3,10 @@ var models = require('../models'),
     Group = models.Group,
     User = models.User,
     Transaction = models.Transaction,
-    Rule = models.Rule,
     Credit = models.Credit,
     UserOrganization = models.UserOrganization,
-    UserGroup = models.UserGroup;
+    UserGroup = models.UserGroup,
+    Approval = models.Approval;
 
 models.sequelize.sync({
 	force: true

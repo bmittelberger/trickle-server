@@ -81,6 +81,11 @@ module.exports = function(models, config, utils) {
 						error : 'New credit amount greater than available parent balance.'
 					});
 				}
+        if (parentCredit.GroupId == req.body.GroupId) {
+          return res.status(400).json({
+            error: 'Subcredit group cannot be the same as parent group.'
+          })
+        }
 				parentCredit
 					.updateAttributes({
 						balance : (parentCredit.balance - req.body.amount)

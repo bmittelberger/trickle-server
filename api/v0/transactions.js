@@ -19,6 +19,13 @@ module.exports = function(models, config, utils) {
 			return res.json(400,error);
 		}
 
+    var recordState = {
+      currentState: {
+        CreditId: req.body.CreditId,
+        currentRule: null
+      },
+      history: []
+    };
 		//TODO: add logic for rules to determine status
 		//and payment options (auto-payment possible)
 		Transaction.
@@ -29,7 +36,8 @@ module.exports = function(models, config, utils) {
 				status : 'PENDING',
 				UserId : req.user.id,
 				GroupId : req.body.GroupId, 
-				CreditId : req.body.CreditId
+				CreditId : req.body.CreditId,
+        stateInfo: recordState
 			}).then(function(transaction){
 				return res.json({
 					transaction : transaction
