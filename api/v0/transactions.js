@@ -6,7 +6,7 @@ module.exports = function(models, config, utils) {
 
 	var listAll = function(req, res) {
 		return res.json({
-			sup : 'sup'
+			sup : "There's no reason you should need to see ALL credits"
 		})
 	};
 

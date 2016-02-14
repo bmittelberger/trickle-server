@@ -10,7 +10,7 @@ module.exports = function(models, config, utils) {
   var Group = models.Group;
   
   var create = function(req, res) {
-    var error = { //what does this do? -Adam
+    var error = { 
       user: null
     };
     if (!req.body.first || !req.body.last ||
@@ -118,9 +118,9 @@ module.exports = function(models, config, utils) {
           });
         }
         user.destroy()
-        .then(function() {
+        .then(function(count) {
           return res.json(200, {
-            result: "user removed" 
+            countRemoved: count 
           });
         })
         .catch(function(err) {
@@ -259,7 +259,7 @@ module.exports = function(models, config, utils) {
       })
       .then(function(userGroup) {
         return res.json({
-          countDeleted : userGroup  
+          countRemoved : userGroup  
         });
       })
       .catch(function(err) {

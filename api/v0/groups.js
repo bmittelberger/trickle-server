@@ -372,12 +372,11 @@ module.exports = function(models, config, utils) {
 
 	groups.use('/:id', utils.auth.authenticateGroupAdmin);
 
-  groups.post('/:id/users', addUser);
+  	groups.post('/:id/users', addUser);
 	groups.delete('/:id/users', removeUser);
 
 	groups.post('/:id/groups', createSubGroup)
 	groups.put('/:id', updateGroup);
-
 
 	return groups;	
 };
