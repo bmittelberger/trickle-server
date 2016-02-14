@@ -62,7 +62,7 @@ module.exports = function(models, config, utils) {
 	};
 
 	var updateTransaction = function(req, res) {
-		t = req.body;
+		var t = req.body;
 			if (t.status && (t.status != 'PENDING' &&
 					t.status != 'APPROVED' && t.status != 'DECLINED')) {
 				return res.status(400).json({
