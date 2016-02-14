@@ -159,6 +159,7 @@ module.exports = function(models, config, utils) {
 			if (!credit.ParentCreditId || !newCredit.amount) {
 				var validity =  {
 					valid : true,
+                    error : null
 				};
 				resolve(validity);
 			}
@@ -173,7 +174,7 @@ module.exports = function(models, config, utils) {
 			Credit
 				.findById(credit.ParentCreditId)
 				.then(function(parentCredit) {
-					availableAmount = parentCredit.balance + credit.amount;
+					var availableAmount = parentCredit.balance + credit.amount;
 					if (availableAmount - newCredit.amount < 0) {
 						var validity = {
 							valid : false,
@@ -181,7 +182,7 @@ module.exports = function(models, config, utils) {
 						};
 						resolve(validity);
 					}
-					newParentBalance = parentCredit.balance + credit.amount 
+					var newParentBalance = parentCredit.balance + credit.amount 
 														 - newCredit.amount;
 					parentCredit
 						.updateAttributes({
@@ -206,7 +207,7 @@ module.exports = function(models, config, utils) {
 	};
 
 	var updateCredit = function(req, res) {
-		newCredit = req.body;
+		var newCredit = req.body;
 		if (newCredit.amount && 
 				Number(newCredit.amount) != newCredit.amount) {
 			return res.status(400).json({
@@ -277,15 +278,66 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
-	var retrieveParentCredit = function(credit) {
-		Credit
-			.findById(credit.ParentCreditId)
-			.then(function(parentCredit) {
-				return parentCredit;
-			})
-			.catch(function(err) {
-				return null;
-			});
+    var retrieveSubCredits = function(req, res) {
+        Credit
+            .findById(req.params.id)
+            .then(function(credit) {
+                if (!credit) {
+                    return res.status(400).json({
+                        error: 'Parent credit not found.'
+                    });
+                }
+                Credit
+                    .findall({
+                        where: {
+                            parentCreditId : credit.id
+                        }
+                    })
+                    .then(function(credits) {
+                        return res.json({
+                            credits : credits.map(function(credit) {
+                                return credit.toJSON();
+                            })
+                        })
+                    })
+                    .catch(function(err) { 
+                        return res.status(400).json({
+                            error : JSON.stringify(err)
+                        });
+                    })
+            })
+            .catch(function(err) {
+                return req.status(400).json({
+                   error : JSON.stringify(err) 
+                });
+            })
+            
+    };
+
+	var retrieveParentCredit = function(req, res) {
+		 Credit
+            .findById(req.params.id)
+            .then(function(credit) {
+                if (!credit) {
+                    return res.status(400).json({
+                        error : 'Parent credit not found.'
+                    });
+                }
+                Credit
+                    .findById(credit.ParentCreditId)
+                    .then(function(parentCredit) {
+                        return parentCredit;
+                    })
+                    .catch(function(err) {
+                        return null;
+                    });        
+            })
+            .catch(function(err) {
+                return req.status(400).json({
+                   error : JSON.stringify(err) 
+                });
+            })
+        
 	};
 
   credits.get('/', listAll);
@@ -298,6 +350,9 @@ module.exports = function(models, config, utils) {
 
 	//create a sub-credit from provided creditId
   credits.post('/:id/credits', createSubCredit);
+  credits.get('/:id/credits', retrieveSubCredits);
+  
+  credits.get('/:id/parent', retrieveParentCredit);
 
   credits.get('/:id/transactions', retrieveTransactions)
   
