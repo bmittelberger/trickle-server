@@ -42,6 +42,28 @@ module.exports = function(models, config) {
   var Promise = models.sequelize.Promise;
   var UserGroup = models.UserGroup;
   var Credit = models.Credit;
+  // var approvalUtils = utils.approval;
+  // var approvalUtils = require('../utils/approval.js');
+  var Approval = models.Approval;
+
+
+  var createApproval = function(transaction, UserId) {
+    var message = JSON.stringify(transaction.stateInfo.currentState);
+    Approval
+      .create({
+        status : 'ACTIVE',
+        message : "message placeholder",
+        UserId : UserId,
+        TransactionId: transaction.id
+      })
+      .then(function(approval){ 
+        console.log(approval.toJSON());
+      })
+      .catch(function(err){
+        console.log(err);
+      });
+  };
+
   
   var cumulativeTransactionAmountWithinWindow = function(transaction, credit, rule) {
     return Transaction.sum('amount', {
@@ -277,8 +299,15 @@ module.exports = function(models, config) {
                   transaction
                     .updateAttributes({
                       stateInfo: updatedState
+                    })
+                    .then(function(transaction) {
+                      console.log("hi")
+                      console.log(transaction.stateInfo);
+                      var userIds = transaction.stateInfo.currentState.currentRule.requiredUsers;
+                      userIds.forEach(function(userId){
+                        createApproval(transaction, userId);
+                      });
                     });
-                  console.log(transaction.stateInfo);
                   // console.log("REIMBURSEMENT REQUEST PENDING, SENDING OUT APPROVAL TO USERS: " + approvalData.requiredUsers);
                   //SEND OUT APPROVAL REQUESTS TO USERS LISTED IN approvalData
                 }
