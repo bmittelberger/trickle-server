@@ -1,3 +1,5 @@
+var venmoUtils = require('../../utils/venmo.js');
+
 var RuleType = {
   WINDOW_LIMIT: 'RULE_TYPE_WINDOW_LIMIT',
   RANGE_APPROVAL: 'RULE_TYPE_RANGE_APPROVAL'
@@ -37,28 +39,29 @@ var ApprovalPriority = {
   APPROVAL_TYPE_DECLINE: 3
 };
 
-module.exports = function(models, config) {
+
+
+module.exports = function(models) {
   var Transaction = models.Transaction;
-  var Promise = models.sequelize.Promise;
   var UserGroup = models.UserGroup;
-  var Credit = models.Credit;
-  // var approvalUtils = utils.approval;
-  // var approvalUtils = require('../utils/approval.js');
   var Approval = models.Approval;
-
-
+  var Credit = models.Credit;
+  
   var createApproval = function(transaction, UserId) {
     var message = JSON.stringify(transaction.stateInfo.currentState);
+    var currentState = transaction.stateInfo.currentState;
     Approval
       .create({
         status : 'ACTIVE',
         message : "message placeholder",
+        // message: message
         UserId : UserId,
-        TransactionId: transaction.id
+        TransactionId: transaction.id,
+        CreditId: currentState.CreditId
       })
-      .then(function(approval){ 
-        console.log(approval.toJSON());
-      })
+      // .then(function(approval){ 
+      //   console.log(approval.toJSON());
+      // })
       .catch(function(err){
         console.log(err);
       });
@@ -261,6 +264,8 @@ module.exports = function(models, config) {
       cb();
     }
     var stateInfo = transaction.stateInfo;
+    
+
     Credit.findById(stateInfo.currentState.CreditId).then(function(credit) {
       if (transaction.amount > credit.balance) {
         console.log("REIMBURSEMENT REQUEST DECLINED -- GREATER THAN BALANCE");
@@ -269,6 +274,7 @@ module.exports = function(models, config) {
             status : 'DECLINED'
           })
           .then(function(transaction) {
+            console.log("INSIDE THEN2")
             cb();
           })
         // AUTO DECLINE -- AND PUSH TO USER
@@ -276,12 +282,10 @@ module.exports = function(models, config) {
         var rulePromises = getRulePromises(transaction, credit);
         Promise.all(rulePromises)
           .then(function(rules) {
-            console.log(rules);
             var relevantRules = rules.filter(function(rule) {
               return (!rule.min || (rule.min <= rule.amount)) &&
                     (!rule.max || (rule.max > rule.amount));
             });
-            console.log(relevantRules);
             var strictestRulePromise = getStrictestRule(relevantRules, credit);
             strictestRulePromise.then(function(approvalData) {
               if (!approvalData) {
@@ -298,22 +302,28 @@ module.exports = function(models, config) {
                   //DECLINE AND NOTIFY TRANSACTION REQUESTER
                 } else {
                   //We can't require more users to sign off than exist in the group
+                  console.log("ADDING APPROVAL DATA");
                   if (approvalData.requiredUserNumber > approvalData.requiredUsers.length) {
                     approvalData.requiredUserNumber = approvalData.requiredUsers.length;
                   }
                   var updatedState = transaction.stateInfo;
                   updatedState.currentState.currentRule = approvalData;
-                  transaction
-                    .updateAttributes({
-                      stateInfo: updatedState
-                    })
-                    .then(function(transaction) {
-                      console.log(transaction.stateInfo);
-                      var userIds = transaction.stateInfo.currentState.currentRule.requiredUsers;
-                      userIds.forEach(function(userId){
-                        createApproval(transaction, userId);
-                      });
-                    });
+                  // console.log("UPDATED STATE:");
+                  // console.log(updatedState);
+                  // console.log(transaction.stateInfo.currentState.currentRule);
+                  //transaction.stateInfo = updatedState;
+                  var state = JSON.parse(JSON.stringify(updatedState));
+                  
+                  transaction.updateAttributes({
+                    stateInfo : updatedState
+                  })
+                  
+                  // console.log("SUPSUPSUSPUSPUSPUSPSUPSUSPUSPU");
+                  // console.log(transaction.toJSON());
+                  var userIds = transaction.stateInfo.currentState.currentRule.requiredUsers;
+                  userIds.forEach(function(userId){
+                    createApproval(transaction, userId);
+                  });
                 }
               }
               cb();
@@ -330,7 +340,19 @@ module.exports = function(models, config) {
     });
   };
   
-  return {
-    processTransaction: processTransaction
-  };
+  Transaction.afterCreate(function(transaction, options, cb) {
+    processTransaction(transaction, cb);
+  });
+  
+  Transaction.afterUpdate(function(transaction, options, cb) {
+    //If current rule info is set, then we don't need to
+    //process again. We're waiting on approvals.
+    var stateInfo = transaction.stateInfo;
+    if (stateInfo.currentState.currentRule != null) {
+      cb();
+    } else {
+      processTransaction(transaction, cb);
+      cb();
+    }
+  })
 };

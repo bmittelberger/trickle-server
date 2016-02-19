@@ -36,7 +36,7 @@ module.exports = function(models, config, utils) {
           });
         })
         .catch(function(err) {
-          console.log("here2");
+          console.log(err);
           return res.status(400).json({
             error : err
           });

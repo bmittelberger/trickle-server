@@ -54,6 +54,13 @@ relations.forEach(function(relation) {
   
   m.Approval.belongsTo(m.User);
   m.Approval.belongsTo(m.Transaction);
+  m.Approval.belongsTo(m.Credit);
+  
+  // Bind hooks to models
+  models.forEach(function(model) {
+    var hookBindingFn = require('./hooks/' + model.toLowerCase() + '.js');
+    hookBindingFn(m);
+  });
   
 })(module.exports);
 

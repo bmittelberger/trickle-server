@@ -39,6 +39,7 @@ module.exports = function(models, config, utils) {
 				CreditId : req.body.CreditId,
         stateInfo: recordState
 			}).then(function(transaction){
+        console.log(transaction.toJSON());
 				return res.json({
 					transaction : transaction
 				});
