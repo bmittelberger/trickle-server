@@ -289,6 +289,9 @@ module.exports = function(models) {
             var strictestRulePromise = getStrictestRule(relevantRules, credit);
             strictestRulePromise.then(function(approvalData) {
               if (!approvalData) {
+                transaction.updateAttributes({
+                  status: 'APPROVED'
+                });
                 // console.log("REIMBURSEMENT REQUEST AUTO APPROVED");
                 //NO RELEVANT RULES -- SEND OUT REIMBURSEMENT
               } else {
@@ -308,18 +311,13 @@ module.exports = function(models) {
                   }
                   var updatedState = transaction.stateInfo;
                   updatedState.currentState.currentRule = approvalData;
-                  // console.log("UPDATED STATE:");
-                  // console.log(updatedState);
-                  // console.log(transaction.stateInfo.currentState.currentRule);
-                  //transaction.stateInfo = updatedState;
+                  transaction.stateInfo = updatedState;
                   var state = JSON.parse(JSON.stringify(updatedState));
                   
                   transaction.updateAttributes({
                     stateInfo : updatedState
                   })
                   
-                  // console.log("SUPSUPSUSPUSPUSPUSPSUPSUSPUSPU");
-                  // console.log(transaction.toJSON());
                   var userIds = transaction.stateInfo.currentState.currentRule.requiredUsers;
                   userIds.forEach(function(userId){
                     createApproval(transaction, userId);
@@ -342,13 +340,15 @@ module.exports = function(models) {
   
   Transaction.afterCreate(function(transaction, options, cb) {
     processTransaction(transaction, cb);
+    cb();
   });
   
-  Transaction.afterUpdate(function(transaction, options, cb) {
+  Transaction.afterUpdate(  function(transaction, options, cb) {
     //If current rule info is set, then we don't need to
     //process again. We're waiting on approvals.
     var stateInfo = transaction.stateInfo;
-    if (stateInfo.currentState.currentRule != null) {
+    if (stateInfo.currentState.currentRule != null
+        || transaction.status == 'APPROVED') {
       cb();
     } else {
       processTransaction(transaction, cb);

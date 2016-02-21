@@ -39,7 +39,11 @@ module.exports = function(models) {
   var processThreshold = function(transaction, counts) {
     return new Promise(function(resolve,reject) {
       var currentState = transaction.stateInfo.currentState;
-      var requiredUsers = currentState.currentRule.requiredUsers;
+      var requiredUsers = currentState.currentRule.requiredUserNumber;
+      console.log("counts:");
+      console.log(counts);
+      console.log("required users:");
+      console.log(requiredUsers);
       if (counts.approvedCount >= requiredUsers) {
         Credit
           .findById(currentState.CreditId)
@@ -55,11 +59,15 @@ module.exports = function(models) {
             } else {
               var parentId = credit.ParentCreditId;
               var newStateInfo = transaction.stateInfo;
-              newStateInfo.history.push(newStateInfo.currentState);
+              var history = newStateInfo.history;
+              var historyEntry = JSON.parse(JSON.stringify(transaction.stateInfo.currentState));
+              history.push( historyEntry );
+              newStateInfo.history = history;
               newStateInfo.currentState.CreditId = parentId;
               newStateInfo.currentState.currentRule = null;
               transaction
                 .updateAttributes({
+                  description: "new desctiption",
                   stateInfo: newStateInfo
                 })
                 .then(function(transaction) {
@@ -77,6 +85,7 @@ module.exports = function(models) {
       } else if (counts.totalCount - counts.declinedCount
                   < requiredUsers) {
         //unable to reach threshold -- DECLINE
+        console.log("GOING TO DECLINE");
         transaction
           .updateAttributes({
             status: 'DECLINED',
