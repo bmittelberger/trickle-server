@@ -3,6 +3,7 @@ var express = require('express'),
 
 module.exports = function(models, config, utils) {
 	var Transaction = models.Transaction;
+  var Credit = models.Credit;
 
 	var listAll = function(req, res) {
 		return res.json({
@@ -26,8 +27,6 @@ module.exports = function(models, config, utils) {
       },
       history: []
     };
-		//TODO: add logic for rules to determine status
-		//and payment options (auto-payment possible)
 		Transaction.
 			create({
 				amount : req.body.amount,
@@ -39,10 +38,9 @@ module.exports = function(models, config, utils) {
 				CreditId : req.body.CreditId,
         stateInfo: recordState
 			}).then(function(transaction){
-        console.log(transaction.toJSON());
-				return res.json({
-					transaction : transaction
-				});
+          return res.json({
+            transaction : transaction
+          });				
 			}).catch(function(err){
 				return res.json(400,{
 					error : JSON.stringify(err)

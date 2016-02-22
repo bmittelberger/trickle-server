@@ -36,14 +36,35 @@ module.exports = function(models) {
     });
   };
   
+  
+  var updateCredit = function(transaction, isSubtraction) {
+    return new Promise(function(resolve, reject) {
+      Credit
+        .findById(transaction.CreditId)
+          .then(function(credit) {
+            var newBalance = credit.balance;
+            if (isSubtraction) {
+              newBalance = newBalance - transaction.amount;
+            } else{
+              newBalance = newBalance + transaction.amount;
+            }
+            credit.updateAttributes({
+              balance: newBalance
+            })
+            .then(function(credit) {
+              resolve(credit);
+            })
+          })
+          .catch(function(err) {
+            reject(err);
+          })
+    });
+  };
+  
   var processThreshold = function(transaction, counts) {
     return new Promise(function(resolve,reject) {
       var currentState = transaction.stateInfo.currentState;
       var requiredUsers = currentState.currentRule.requiredUserNumber;
-      console.log("counts:");
-      console.log(counts);
-      console.log("required users:");
-      console.log(requiredUsers);
       if (counts.approvedCount >= requiredUsers) {
         Credit
           .findById(currentState.CreditId)
@@ -92,6 +113,7 @@ module.exports = function(models) {
             message: 'Did not pass group approval.'
           })
           .then(function(transaction) {
+            updateCredit(transaction, false);
             resolve(transaction);
           })
           .catch(function(err) {

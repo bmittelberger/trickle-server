@@ -6,10 +6,27 @@ module.exports = function(models, config, utils) {
   var Approval = models.Approval;
   
 
-  var retrieveAll = function(req,res) {
-    return res.json({
-      error : "there's no reason you should need to see ALL approvals"
-    })
+  var retrieveAll = function(req, res) {
+    var userId = req.user.id;
+    Approval
+      .findAll({
+        where: {
+          UserId: userId,
+          status: 'ACTIVE'
+        }
+      })
+      .then(function(approvals) {
+        return res.json({
+          approvals : approvals.map(function(approval) {
+  							return approval.toJSON()
+          })
+        });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error: JSON.stringify(err)
+        });
+      });
   };
 
   var updateApproval = function(req, res) {
@@ -49,6 +66,8 @@ module.exports = function(models, config, utils) {
         });
       });
   };
+
+  approvals.use(utils.auth.authenticate);
 
   approvals.get('/', retrieveAll);
   

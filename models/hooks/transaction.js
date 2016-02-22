@@ -255,9 +255,34 @@ module.exports = function(models) {
    });
   };
   
+  var updateCredit = function(transaction, isSubtraction) {
+    return new Promise(function(resolve, reject) {
+      Credit
+        .findById(transaction.CreditId)
+          .then(function(credit) {
+            var newBalance = credit.balance;
+            if (isSubtraction) {
+              newBalance = newBalance - transaction.amount;
+            } else{
+              newBalance = newBalance + transaction.amount;
+            }
+            credit.updateAttributes({
+              balance: newBalance
+            })
+            .then(function(credit) {
+              resolve(credit);
+            })
+          })
+          .catch(function(err) {
+            reject(err);
+          })
+    });
+  };
+  
   var processTransaction = function(transaction, cb) {
     if (transaction.status == 'APPROVED') {
       //SEND REIMBURSEMENT
+      console.log("SENDING REIMBURSMENT");
       cb();
     } else if (transaction.status == 'DECLINED') {
       // Send push notification to user?
@@ -268,16 +293,14 @@ module.exports = function(models) {
 
     Credit.findById(stateInfo.currentState.CreditId).then(function(credit) {
       if (transaction.amount > credit.balance) {
-        console.log("REIMBURSEMENT REQUEST DECLINED -- GREATER THAN BALANCE");
         transaction
           .updateAttributes({
-            status : 'DECLINED'
+            status : 'DECLINED',
+            message: 'Transaction amount is greater than available balance'
           })
           .then(function(transaction) {
-            console.log("INSIDE THEN2")
             cb();
           })
-        // AUTO DECLINE -- AND PUSH TO USER
       } else {
         var rulePromises = getRulePromises(transaction, credit);
         Promise.all(rulePromises)
@@ -292,7 +315,6 @@ module.exports = function(models) {
                 transaction.updateAttributes({
                   status: 'APPROVED'
                 });
-                // console.log("REIMBURSEMENT REQUEST AUTO APPROVED");
                 //NO RELEVANT RULES -- SEND OUT REIMBURSEMENT
               } else {
                 if (approvalData.approval == ApprovalType.DECLINE) {
@@ -305,7 +327,6 @@ module.exports = function(models) {
                   //DECLINE AND NOTIFY TRANSACTION REQUESTER
                 } else {
                   //We can't require more users to sign off than exist in the group
-                  console.log("ADDING APPROVAL DATA");
                   if (approvalData.requiredUserNumber > approvalData.requiredUsers.length) {
                     approvalData.requiredUserNumber = approvalData.requiredUsers.length;
                   }
@@ -317,7 +338,6 @@ module.exports = function(models) {
                   transaction.updateAttributes({
                     stateInfo : updatedState
                   })
-                  
                   var userIds = transaction.stateInfo.currentState.currentRule.requiredUsers;
                   userIds.forEach(function(userId){
                     createApproval(transaction, userId);
@@ -340,7 +360,14 @@ module.exports = function(models) {
   
   Transaction.afterCreate(function(transaction, options, cb) {
     processTransaction(transaction, cb);
-    cb();
+    if (transaction.status == 'PENDING') {
+        updateCredit(transaction, true)
+          .then(function(credit) {
+            cb();
+          })
+    } else {
+      cb();
+    }
   });
   
   Transaction.afterUpdate(  function(transaction, options, cb) {
