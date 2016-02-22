@@ -8,6 +8,7 @@ module.exports = function(models, config, utils) {
   var Transaction = models.Transaction;
   var UserGroup = models.UserGroup;
   var Group = models.Group;
+  var Approval = models.Approval;
   
   var create = function(req, res) {
     var error = { 
@@ -342,7 +343,40 @@ module.exports = function(models, config, utils) {
           error : err
         })
       })
-  }
+  };
+  
+  var retrieveMyApprovals = function(req, res) {
+    var statuses = [];
+    if (req.query.statuses) {
+      statuses = req.query.statuses.split('|');
+    } else {
+      statuses = ['APPROVED',
+                    'DECLINED',
+                    'ACTIVE',
+                    'EXPIRED'];
+    }
+    var userId = req.user.id;
+    console.log(statuses);
+    Approval
+    .findAll({
+      where: {
+        UserId: userId,
+        status: statuses
+      }
+    })
+    .then(function(approvals) {
+      return res.json({
+        approvals : approvals.map(function(approval) {
+              return approval.toJSON()
+        })
+      });
+    })
+    .catch(function(err) {
+      return res.status(400).json({
+        error: JSON.stringify(err)
+      });
+    });
+  };
 
   users.post('/', create);
   
@@ -373,6 +407,8 @@ module.exports = function(models, config, utils) {
   users.get('/:id/transactions', retrieveTransactions);
 
   users.post('/me/transactions', createMyTransaction);
+  
+  users.get('/me/approvals', retrieveMyApprovals);
 
   return users;
 };
