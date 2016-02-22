@@ -362,7 +362,8 @@ module.exports = function(models, config, utils) {
       where: {
         UserId: userId,
         status: statuses
-      }
+      },
+        include: [Transaction]
     })
     .then(function(approvals) {
       return res.json({

@@ -4,6 +4,7 @@ var express = require('express'),
 module.exports = function(models, config, utils) {
   // var User = models.User;
   var Approval = models.Approval;
+  var Transaction = models.Transaction;
   
 
   var retrieveAll = function(req, res) {
@@ -13,9 +14,13 @@ module.exports = function(models, config, utils) {
         where: {
           UserId: userId,
           status: 'ACTIVE'
-        }
+        },
+        include: [{
+          model: Transaction
+        }]
       })
       .then(function(approvals) {
+        console.log(approvals);
         return res.json({
           approvals : approvals.map(function(approval) {
   							return approval.toJSON()
