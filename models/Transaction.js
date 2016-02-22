@@ -22,5 +22,18 @@ module.exports = function(sequelize, DataTypes) {
     stateInfo: {
       type: DataTypes.JSON
     }
+  }, {
+    instanceMethods: {
+      toJSON: function() {
+        var values = this.get(),
+            copy = {};
+        for (var i in values)
+          copy[i] = values[i];
+        if (copy.User) {
+          copy.User = copy.User.toJSON();
+        }
+        return copy;
+      }
+    }
   });
 };

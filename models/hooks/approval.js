@@ -36,6 +36,23 @@ module.exports = function(models) {
     });
   };
   
+  var expireApprovals = function(transaction) {
+    Approval.
+      update(
+        {
+          status: 'EXPIRED'
+        },
+        {
+          where: { 
+            TransactionId: transaction.id,
+            CreditId: transaction.CreditId,
+            status: 'ACTIVE' 
+            }
+        })
+        .catch(function(err) {
+           console.log(err);
+        });
+  };
   
   var updateCredit = function(transaction, isSubtraction) {
     return new Promise(function(resolve, reject) {
@@ -114,6 +131,7 @@ module.exports = function(models) {
           })
           .then(function(transaction) {
             updateCredit(transaction, false);
+            expireApprovals(transaction);
             resolve(transaction);
           })
           .catch(function(err) {
