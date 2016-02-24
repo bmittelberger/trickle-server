@@ -2,10 +2,8 @@ var express = require('express'),
     approvals = express.Router();
 
 module.exports = function(models, config, utils) {
-  // var User = models.User;
   var Approval = models.Approval;
   var Transaction = models.Transaction;
-  
 
   var retrieveAll = function(req, res) {
     var userId = req.user.id;

@@ -88,7 +88,6 @@ module.exports = function(models) {
               newStateInfo.currentState.currentRule = null;
               transaction
                 .updateAttributes({
-                  description: "new desctiption",
                   stateInfo: newStateInfo
                 })
                 .then(function(transaction) {
@@ -110,7 +109,6 @@ module.exports = function(models) {
         transaction
           .updateAttributes({
             status: 'DECLINED',
-            message: 'Did not pass group approval.'
           })
           .then(function(transaction) {
             updateCredit(transaction, false);

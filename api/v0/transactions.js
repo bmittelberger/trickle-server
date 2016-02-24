@@ -5,18 +5,12 @@ module.exports = function(models, config, utils) {
 	var Transaction = models.Transaction;
   var Credit = models.Credit;
 
-	var listAll = function(req, res) {
-		return res.json({
-			sup : "There's no reason you should need to see ALL credits"
-		})
-	};
-
 	var create = function(req, res) {
 		var error = {
 			error : 'Transaction could not be created'
 		};
-		if (!req.body.amount || !req.body.description ||
-			  !req.body.GroupId || !req.body.CreditId) {
+		if (!req.body.amount || !req.body.title ||
+			!req.body.GroupId || !req.body.CreditId) {
 			return res.json(400,error);
 		}
 
@@ -30,8 +24,9 @@ module.exports = function(models, config, utils) {
 		Transaction.
 			create({
 				amount : req.body.amount,
-				description : req.body.description,
-				message : req.body.message,
+				title : req.body.title,
+				category : req.body.category,
+				location : req.body.location,
 				status : 'PENDING',
 				UserId : req.user.id,
 				GroupId : req.body.GroupId, 
@@ -87,8 +82,8 @@ module.exports = function(models, config, utils) {
 				transaction
 					.updateAttributes({
 						status: t.status ? t.status : transaction.status,
-						message: t.message ? t.message : transaction.message
-
+						category: t.category ? t.category : transaction.category,
+						location: t.location ? t.location : transaction.location
 					})
 					.then(function(transaction) {
 						return res.json({
@@ -111,7 +106,6 @@ module.exports = function(models, config, utils) {
 
 	transactions.use(utils.auth.authenticate);
 
-  transactions.get('/', listAll);
   transactions.post('/', create);
 
   transactions.get('/:id', retrieveTransaction);

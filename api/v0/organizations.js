@@ -7,12 +7,6 @@ module.exports = function(models, config, utils) {
 	var UserOrganization = models.UserOrganization;
 	var Group = models.Group;
 
-	var retrieveAll = function(req,res) {
-		return res.json({
-			error : "there's no reason you should need to see ALL organizations"
-		})
-	};
-
 	var create = function(req,res) {
 		var error = {
 			organization : null
@@ -196,9 +190,7 @@ module.exports = function(models, config, utils) {
 
   organizations.use(utils.auth.authenticate);
 
-  organizations.get('/', retrieveAll);
   organizations.post('/', create);
-
 
   organizations.get('/:id', retrieveOrganization);
 

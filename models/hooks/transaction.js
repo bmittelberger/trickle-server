@@ -48,13 +48,10 @@ module.exports = function(models) {
   var Credit = models.Credit;
   
   var createApproval = function(transaction, UserId) {
-    var message = JSON.stringify(transaction.stateInfo.currentState);
     var currentState = transaction.stateInfo.currentState;
     Approval
       .create({
         status : 'ACTIVE',
-        message : "message placeholder",
-        // message: message
         UserId : UserId,
         TransactionId: transaction.id,
         CreditId: currentState.CreditId
@@ -296,7 +293,6 @@ module.exports = function(models) {
         transaction
           .updateAttributes({
             status : 'DECLINED',
-            message: 'Transaction amount is greater than available balance'
           })
           .then(function(transaction) {
             cb();

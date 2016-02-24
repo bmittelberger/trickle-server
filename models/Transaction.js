@@ -3,10 +3,13 @@ module.exports = function(sequelize, DataTypes) {
     amount: {
       type: DataTypes.DECIMAL(10, 2)
     },
-    description: {
+    title: {
       type: DataTypes.STRING
     },
-    message: {
+    category: {
+      type: DataTypes.STRING
+    },
+    location: {
       type: DataTypes.STRING
     },
     status: {
