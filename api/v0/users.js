@@ -362,7 +362,10 @@ module.exports = function(models, config, utils) {
         UserId: userId,
         status: statuses
       },
-        include: [Transaction]
+        include: [{
+          model: Transaction,
+          include: [User]
+        }]
     })
     .then(function(approvals) {
       return res.json({
