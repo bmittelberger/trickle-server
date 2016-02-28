@@ -20,7 +20,6 @@ module.exports = function(models, config, utils) {
         }]
       })
       .then(function(approvals) {
-        console.log(approvals);
         return res.json({
           approvals : approvals.map(function(approval) {
   							return approval.toJSON()

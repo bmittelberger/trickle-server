@@ -116,14 +116,8 @@ module.exports = function(models) {
           .catch(function(err) {
             reject(err);
           })
-        //grab parent credit from transaction's credit
-        //if null --> set to approved --> afterUpdate hook in models/Transaction.js
-        // will do the payment. Otherwise, grab parent creditId and update
-        // current state for transaction
       } else if (counts.totalCount - counts.declinedCount
                   < requiredUsers) {
-        //unable to reach threshold -- DECLINE
-        console.log("GOING TO DECLINE");
         transaction
           .updateAttributes({
             status: 'DECLINED',

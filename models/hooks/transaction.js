@@ -219,7 +219,7 @@ module.exports = function(models) {
     var rule2Admins = getAdminsList(rule2, groupData);
     rule1 = getRequiredUsers(rule1, rule1Members, rule1Admins, groupData);
     rule2 = getRequiredUsers(rule2, rule2Members, rule2Admins, groupData);
-    return rule1.requiredUsers.length > rule2.requiredUsers.length ? rule1 : rule2;
+    return rule1.requiredUserNumber > rule2.requiredUserNumber ? rule1 : rule2;
   };
   
   var getStrictestRule = function(rules, credit) {
@@ -326,14 +326,22 @@ module.exports = function(models) {
                     })
                   //DECLINE AND NOTIFY TRANSACTION REQUESTER
                 } else {
+                  
+                  var requiredUsers = approvalData.requiredUsers;
+                  var transactionUserIndex = requiredUsers.indexOf(transaction.UserId);
+                  if (transactionUserIndex > -1) {
+                    
+                  }
+                  
                   //We can't require more users to sign off than exist in the group
                   if (approvalData.requiredUserNumber > approvalData.requiredUsers.length) {
                     approvalData.requiredUserNumber = approvalData.requiredUsers.length;
                   }
+                  
+                  
                   var updatedState = transaction.stateInfo;
                   updatedState.currentState.currentRule = approvalData;
                   transaction.stateInfo = updatedState;
-                  var state = JSON.parse(JSON.stringify(updatedState));
                   
                   transaction.updateAttributes({
                     stateInfo : updatedState
