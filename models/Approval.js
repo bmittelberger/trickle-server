@@ -9,9 +9,6 @@ module.exports = function(sequelize, DataTypes) {
         'DECLINED',
         'EXPIRED'
       )
-    },
-    message: {
-      type: DataTypes.STRING
     }
   }, {
     instanceMethods: {

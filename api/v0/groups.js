@@ -15,12 +15,11 @@ module.exports = function(models, config, utils) {
 	};
 
 	var create = function(req,res) {
-		var error = {
-			group : null
-		};
 		if (!req.body.name || !req.body.description ||
 				!req.body.OrganizationId) {
-			return res.json(400,error);
+			return res.status(400).json({
+        error : "Invalid request body."
+      });
 		}
 		pId = req.body.ParentGroupId;
 		Group

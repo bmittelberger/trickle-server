@@ -2,21 +2,20 @@ var express = require('express'),
     users = express.Router();
 
 module.exports = function(models, config, utils) {
-  var User = models.User;
-  var UserOrganization = models.UserOrganization;
-  var Organization = models.Organization;
-  var Transaction = models.Transaction;
-  var UserGroup = models.UserGroup;
-  var Group = models.Group;
-  var Approval = models.Approval;
+  var User = models.User,
+      UserOrganization = models.UserOrganization,
+      Organization = models.Organization,
+      Transaction = models.Transaction,
+      UserGroup = models.UserGroup,
+      Group = models.Group,
+      Approval = models.Approval;
   
   var create = function(req, res) {
-    var error = { 
-      user: null
-    };
     if (!req.body.first || !req.body.last ||
         !req.body.email || !req.body.password) {
-      return res.json(400, error);
+      return res.status(400).json({
+        error : "Invalid request body."
+      });
     }
     User
       .create({
@@ -32,7 +31,7 @@ module.exports = function(models, config, utils) {
       })
       .catch(function(err) {
         return res.status(400).json({
-          error : err
+          error: JSON.stringify(err)
         });
       });  
   };
@@ -69,10 +68,7 @@ module.exports = function(models, config, utils) {
   };
 
   var updateUser = function(req, res) {
-    if (!req.body.first || !req.body.last ||
-        !req.body.email) {
-      return res.json(400, error);
-    }
+    var u = req.body;
     User
       .findById(req.params.id)
       .then(function(user) {
@@ -81,21 +77,22 @@ module.exports = function(models, config, utils) {
             error : "User not found."
           });
         }
-        user.update({
-          first: req.body.first,
-          last: req.body.last,
-          email: req.body.email
-        })
-        .then(function(user) {
-          return res.json(200, {
-            user: user.toJSON()
-          });
-        })
-        .catch(function(err) {
-          return res.status(400).json({
-            error : err
-          });
-        });  
+        user
+          .updateAttributes({
+            first: u.first ? u.first : user.first,
+            last: u.last ? u.last : user.last,
+            email: u.email ? u.email : user.email
+          })
+          .then(function(user) {
+            return res.json(200, {
+              user: user.toJSON()
+            });
+          })
+          .catch(function(err) {
+            return res.status(400).json({
+              error : JSON.stringify(err)
+            });
+          });  
       })
       .catch(function(err) {
         return res.status(400).json({
@@ -118,23 +115,29 @@ module.exports = function(models, config, utils) {
             error : "User not found."
           });
         }
-        user.destroy()
-        .then(function(count) {
-          return res.json(200, {
-            countRemoved: count 
-          });
-        })
-        .catch(function(err) {
-          return res.status(400).json({
-            error : err
-          });
-        });  
+        user
+          .destroy()
+          .then(function() {
+            return res.json(200, {
+              result: "User permanently removed." 
+            });
+          })
+          .catch(function(err) {
+            return res.status(400).json({
+              error : JSON.stringify(err)
+            });
+          });  
       })
       .catch(function(err) {
         return res.status(400).json({
           error : JSON.stringify(err)
         });
       });
+  };
+
+
+  var retrieveMyOrganizations = function(req, res) {
+    retrieveUserOrganizations(req.user, req, res);
   };
 
   var retrieveUserOrganizations = function(user, req, res) {
@@ -152,10 +155,6 @@ module.exports = function(models, config, utils) {
           error: JSON.stringify(err)
         });
       });
-  };
-
-  var retrieveMyOrganizations = function(req, res) {
-    retrieveUserOrganizations(req.user, req, res);
   };
   
   var retrieveOrganizations = function(req, res) {

@@ -9,7 +9,7 @@ var models = require('../models'),
     Approval = models.Approval;
 
 models.sequelize.sync({
-	// force: true
+	force: true
 });
 
 // Organization.sync()
@@ -31,7 +31,7 @@ models.sequelize.sync({
 // })
 
 // .then(function() {
-//   return Rule.sync();
+//   return Approval.sync();
 // })
 
 // .then(function() {
