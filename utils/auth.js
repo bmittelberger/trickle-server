@@ -29,23 +29,31 @@ module.exports = function(models, config) {
   };
   
   var authenticateOrganizationAdmin = function(req, res, next) {
-    UserOrganization
-      .find({
-        where: {
-          UserId: req.user.id,
-          OrganizationId: req.params.id
-        }
-      })
-      .then(function(userOrganization) {
-        if(userOrganization && userOrganization.isAdmin == true){
-          next();
-        } else {
-          return res.status(403).json(error);
-        }
-      })
-      .catch(function() {
-        return res.status(403).json(error);
-      });
+    req.user.isOrganizationAdmin().then(function(isAdmin) {
+      if (isAdmin) {
+        next();
+      } else {
+        res.status(403);
+      }
+    });
+
+    // UserOrganization
+    //   .find({
+    //     where: {
+    //       UserId: req.user.id,
+    //       OrganizationId: req.params.id
+    //     }
+    //   })
+    //   .then(function(userOrganization) {
+    //     if(userOrganization && userOrganization.isAdmin == true){
+    //       next();
+    //     } else {
+    //       return res.status(403).json(error);
+    //     }
+    //   })
+    //   .catch(function() {
+    //     return res.status(403).json(error);
+    //   });
   };
 
 

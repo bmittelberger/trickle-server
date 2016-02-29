@@ -27,13 +27,19 @@ module.exports = function(models, config, utils) {
           function(err, authenticated) {
             if (err || !authenticated)
               return res.json(400, error);
-            return res.json(200, {
-              authenticated: true,
-              token: jwt.sign({
-                id: user.id
-              }, config.secretKey),
-              user: user.toJSON()
-            });
+            var userJSON = user.toJSON();
+            user
+              .isOrganizationAdmin()
+              .then(function(isAdmin) {
+                userJSON.isOrganizationAdmin = isAdmin;
+                return res.json(200, {
+                  authenticated: true,
+                  token: jwt.sign({
+                    id: user.id
+                  }, config.secretKey),
+                  user: userJSON
+                });
+              });
           }
         );
       })
