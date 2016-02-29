@@ -3,7 +3,9 @@ var express = require('express'),
     jwt = require('jsonwebtoken');
 
 module.exports = function(models, config, utils) {
-  var User = models.User;
+  var User = models.User,
+      Organization = models.Organization,
+      Group = models.Group;
   
   var authenticate = function(req, res) {
     var error = {
@@ -19,7 +21,8 @@ module.exports = function(models, config, utils) {
       .find({
         where: {
           email: req.body.email
-        }
+        },
+        include: [Organization, Group]
       })
       .then(function(user) {
         user.authenticate(
