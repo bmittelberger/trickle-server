@@ -42,6 +42,70 @@ module.exports = function(models, config, utils) {
     });
   };
 
+
+  var findUsers = function(req, res) {
+    if (!req.query.name) {
+      return res.status(400).json({
+        error: 'Please provide a name to query'
+      });
+    }
+    var nameArr = req.query.name.split(" ");
+    var first = nameArr[0].toLowerCase();
+    if (nameArr.length > 1){
+      var last = nameArr[1].toLowerCase();
+      User
+        .findAll({
+          where : {
+            first: {
+              $iLike: first + '%'
+            },
+            last: {
+              $iLike: last + '%'
+            }
+          }
+        })
+        .then(function(users) {
+          return res.json({
+            users: users.map(function(user) {
+              return user.toJSON();
+            })
+          });
+        })
+        .catch(function(err) {
+          return res.status(400).json({
+            error: JSON.stringify(err)
+          });
+        });
+    } else {
+      User
+        .findAll({
+          where : {
+                $or: [{
+                  first: {
+                    $iLike: first + '%'
+                  }
+                } , {
+                  last: {
+                    $iLike: first + '%'
+                  }
+                }]
+          }
+        })
+        .then(function(users) {
+          return res.json({
+            users: users.map(function(user) {
+              return user.toJSON();
+            })
+          });
+        })
+        .catch(function(err) {
+          return res.status(400).json({
+            error: JSON.stringify(err)
+          });
+        });
+    }
+  };
+
   var retrieveUser = function(req, res) {
     User
       .findById(req.params.id)
@@ -249,7 +313,6 @@ module.exports = function(models, config, utils) {
         error : 'Invalid request body'
       });
     }
-    console.log(req.body.GroupId);
     UserGroup
       .destroy({
         where: {
@@ -277,7 +340,6 @@ module.exports = function(models, config, utils) {
         }
       })
       .then(function(transactions) {
-        console.log(transactions)
         return res.json({
           transactions: transactions.map(function(transaction) {
             return transaction.toJSON();
@@ -355,7 +417,6 @@ module.exports = function(models, config, utils) {
                     'EXPIRED'];
     }
     var userId = req.user.id;
-    console.log(statuses);
     Approval
     .findAll({
       where: {
@@ -382,6 +443,7 @@ module.exports = function(models, config, utils) {
   };
 
   users.post('/', create);
+  users.get('/', findUsers);
   
   users.use(utils.auth.authenticate);
   
