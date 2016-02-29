@@ -46,7 +46,7 @@ module.exports = function(models, config, utils) {
   var findUsers = function(req, res) {
     if (!req.query.query) {
       return res.status(400).json({
-        error: 'Please provide a name to query'
+        error: 'Please provide a query string.'
       });
     }
     var nameArr = req.query.query.split(" ");
