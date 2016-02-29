@@ -216,10 +216,12 @@ module.exports = function(models, config, utils) {
   		});
   };
 
+  organizations.get('/', findOrganizations);
+  
   organizations.use(utils.auth.authenticate);
 
   organizations.post('/', create);
-  organizations.get('/', findOrganizations);
+  
 
   organizations.get('/:id', retrieveOrganization);
 

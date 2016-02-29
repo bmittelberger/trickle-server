@@ -443,9 +443,11 @@ module.exports = function(models, config, utils) {
   };
 
   users.post('/', create);
-  users.get('/', findUsers);
+  
   
   users.use(utils.auth.authenticate);
+  
+  users.get('/', findUsers);
   
   users.get('/me', me);
   users.get('/:id', retrieveUser)
