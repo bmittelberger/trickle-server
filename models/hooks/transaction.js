@@ -308,13 +308,15 @@ module.exports = function(models) {
             var strictestRulePromise = getStrictestRule(relevantRules, credit);
             strictestRulePromise.then(function(approvalData) {
               if (!approvalData) {
-                transaction.updateAttributes({
-                  status: 'APPROVED'
-                });
-                //NO RELEVANT RULES -- SEND OUT REIMBURSEMENT
+                transaction
+                  .updateAttributes({
+                    status : 'APPROVED'
+                  })
+                  .then(function(transaction) {
+                    //NO RELEVANT RULES -- SEND OUT REIMBURSEMENT
+                  });
               } else {
                 if (approvalData.approval == ApprovalType.DECLINE) {
-                  // console.log("REIMBURSEMENT REQUEST DECLINED");
                   transaction
                     .updateAttributes({
                       status : 'DECLINED'
@@ -326,14 +328,18 @@ module.exports = function(models) {
                   var requiredUsers = approvalData.requiredUsers;
                   var transactionUserIndex = requiredUsers.indexOf(transaction.UserId);
                   if (transactionUserIndex > -1) {
-                    
+                    approvalData.requiredUsers.splice(transactionUserIndex, 1);
+                  }
+                  if (approvalData.approval == ApprovalType.PERCENTAGE_ADMIN ||
+                      approvalData.approval == ApprovalType.PERCENTAGE_MEMBER ) {
+                        var percent = approvalData.threshold / 100.0;
+                        approvalData.requiredUserNumber = Math.ceil(percent * approvalData.requiredUsers.length);
                   }
                   
                   //We can't require more users to sign off than exist in the group
                   if (approvalData.requiredUserNumber > approvalData.requiredUsers.length) {
                     approvalData.requiredUserNumber = approvalData.requiredUsers.length;
                   }
-                  
                   
                   var updatedState = transaction.stateInfo;
                   updatedState.currentState.currentRule = approvalData;
@@ -348,7 +354,6 @@ module.exports = function(models) {
                   });
                 }
               }
-              cb();
             });
           })
           .catch(function(err) {
