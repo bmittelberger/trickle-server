@@ -305,6 +305,8 @@ module.exports = function(models) {
               return (!rule.min || (rule.min <= rule.amount)) &&
                     (!rule.max || (rule.max > rule.amount));
             });
+            console.log("relevant rules")
+            console.log(relevantRules)
             var strictestRulePromise = getStrictestRule(relevantRules, credit);
             strictestRulePromise.then(function(approvalData) {
               if (!approvalData) {
@@ -325,9 +327,14 @@ module.exports = function(models) {
                   //DECLINE AND NOTIFY TRANSACTION REQUESTER
                 } else {
                   
+                  console.log("current user")
+                  console.log(transaction.id)
+                  console.log("about to remove self from required Users");
+                  console.log(approvalData);
                   var requiredUsers = approvalData.requiredUsers;
                   var transactionUserIndex = requiredUsers.indexOf(transaction.UserId);
                   if (transactionUserIndex > -1) {
+                    console.log("removing")
                     approvalData.requiredUsers.splice(transactionUserIndex, 1);
                   }
                   if (approvalData.approval == ApprovalType.PERCENTAGE_ADMIN ||
@@ -335,6 +342,9 @@ module.exports = function(models) {
                         var percent = approvalData.threshold / 100.0;
                         approvalData.requiredUserNumber = Math.ceil(percent * approvalData.requiredUsers.length);
                   }
+                  
+                  console.log("we out hea")
+                  console.log(approvalData)
                   
                   //We can't require more users to sign off than exist in the group
                   if (approvalData.requiredUserNumber > approvalData.requiredUsers.length) {
@@ -368,6 +378,7 @@ module.exports = function(models) {
   };
   
   Transaction.afterCreate(function(transaction, options, cb) {
+    console.log("in after create");
     processTransaction(transaction, cb);
     if (transaction.status == 'PENDING') {
         updateCredit(transaction, true)

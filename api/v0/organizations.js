@@ -221,7 +221,6 @@ module.exports = function(models, config, utils) {
   organizations.use(utils.auth.authenticate);
 
   organizations.post('/', create);
-  
 
   organizations.get('/:id', retrieveOrganization);
 

@@ -37,6 +37,8 @@ module.exports = function(models, config, utils) {
             transaction : transaction
           });				
 			}).catch(function(err){
+        console.log("error create")
+        console.log(err)
 				return res.json(400,{
 					error : JSON.stringify(err)
 				})
