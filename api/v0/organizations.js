@@ -229,9 +229,10 @@ module.exports = function(models, config, utils) {
 
   organizations.get('/:id/groups', retrieveGroups)
   
-  organizations.use('/:id', utils.auth.authenticateOrganizationAdmin);
-
   organizations.post('/:id/users', addUser);
+  
+  organizations.use('/:id', utils.auth.authenticateOrganizationAdmin);
+  
   organizations.delete('/:id/users', removeUser);
 
   return organizations;	
