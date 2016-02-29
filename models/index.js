@@ -13,6 +13,12 @@ var sequelize = new Sequelize(
   }
 );
 
+// Custom addition to sequelize. Provides late-binding for instance methods
+// within models.
+var bindMethodFn = function(model, name, method) {
+  model.Instance.prototype[name] = method;
+};
+
 var models = [
   'Organization',
   'Group',
@@ -60,6 +66,12 @@ relations.forEach(function(relation) {
   models.forEach(function(model) {
     var hookBindingFn = require('./hooks/' + model.toLowerCase() + '.js');
     hookBindingFn(m);
+  });
+
+  // Bind instance methods to models
+  models.forEach(function(model) {
+    var methodBindingFn = require('./methods/' + model.toLowerCase() + '.js');
+    methodBindingFn(m, bindMethodFn);
   });
   
 })(module.exports);
