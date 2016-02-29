@@ -43,6 +43,34 @@ module.exports = function(models, config, utils) {
 			});
 	};
 
+  var findOrganizations = function(req, res) {
+     if (!req.query.query) {
+      return res.status(400).json({
+        error: 'Please provide a name to query.'
+      });
+    }
+    Organization
+      .findAll({
+        where : {
+          name: {
+            $iLike : "%" + req.query.query + "%"
+          }
+        }
+      })
+      .then(function(organizations) {
+        return res.json({
+          organizations: organizations.map(function(organization) {
+            return organization.toJSON();
+          })
+        });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error: JSON.stringify(err)
+        });
+      });
+  };
+
 	var retrieveOrganization = function(req, res) {
 		id = req.params.id;
 		Organization
@@ -191,6 +219,7 @@ module.exports = function(models, config, utils) {
   organizations.use(utils.auth.authenticate);
 
   organizations.post('/', create);
+  organizations.get('/', findOrganizations);
 
   organizations.get('/:id', retrieveOrganization);
 

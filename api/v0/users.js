@@ -44,12 +44,12 @@ module.exports = function(models, config, utils) {
 
 
   var findUsers = function(req, res) {
-    if (!req.query.name) {
+    if (!req.query.query) {
       return res.status(400).json({
         error: 'Please provide a name to query'
       });
     }
-    var nameArr = req.query.name.split(" ");
+    var nameArr = req.query.query.split(" ");
     var first = nameArr[0].toLowerCase();
     if (nameArr.length > 1){
       var last = nameArr[1].toLowerCase();
