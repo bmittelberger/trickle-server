@@ -42,6 +42,7 @@ var ApprovalPriority = {
 
 
 module.exports = function(models) {
+  var Promise = models.sequelize.Promise;
   var Transaction = models.Transaction;
   var UserGroup = models.UserGroup;
   var Approval = models.Approval;
