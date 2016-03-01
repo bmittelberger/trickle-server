@@ -13,6 +13,8 @@ var sequelize = new Sequelize(
   }
 );
 
+module.exports.sequelize = sequelize;
+
 // Custom addition to sequelize. Provides late-binding for instance methods
 // within models.
 var bindMethodFn = function(model, name, method) {
@@ -75,5 +77,3 @@ relations.forEach(function(relation) {
   });
   
 })(module.exports);
-
-module.exports.sequelize = sequelize;

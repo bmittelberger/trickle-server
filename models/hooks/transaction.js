@@ -305,6 +305,8 @@ module.exports = function(models) {
               return (!rule.min || (rule.min <= rule.amount)) &&
                     (!rule.max || (rule.max > rule.amount));
             });
+            console.log("relevant rules");
+            console.log(relevantRules);
             var strictestRulePromise = getStrictestRule(relevantRules, credit);
             strictestRulePromise.then(function(approvalData) {
               if (!approvalData) {
@@ -325,6 +327,8 @@ module.exports = function(models) {
                   //DECLINE AND NOTIFY TRANSACTION REQUESTER
                 } else {
                   
+                  console.log("approval Data")
+                  console.log(approvalData);
                   var requiredUsers = approvalData.requiredUsers;
                   var transactionUserIndex = requiredUsers.indexOf(transaction.UserId);
                   if (transactionUserIndex > -1) {
@@ -350,9 +354,12 @@ module.exports = function(models) {
                     stateInfo : updatedState
                   })
                   var userIds = transaction.stateInfo.currentState.currentRule.requiredUsers;
+                  console.log("sending approvals out to users");
+                  console.log(userIds);
                   userIds.forEach(function(userId){
                     createApproval(transaction, userId);
                   });
+                  
                 }
               }
             });
@@ -369,6 +376,7 @@ module.exports = function(models) {
   };
   
   Transaction.afterCreate(function(transaction, options, cb) {
+    console.log("in after create");
     processTransaction(transaction, cb);
     if (transaction.status == 'PENDING') {
         updateCredit(transaction, true)
