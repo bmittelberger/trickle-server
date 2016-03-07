@@ -212,6 +212,7 @@ module.exports = function(models, config, utils) {
 	};
 
 	var updateCredit = function(req, res) {
+
 		var newCredit = req.body;
 		if (newCredit.amount && 
 				Number(newCredit.amount) != newCredit.amount) {
@@ -256,12 +257,13 @@ module.exports = function(models, config, utils) {
 							newCredit.balance = newBalance;
 						}
 					}
+
 					credit
 						.updateAttributes({
 							amount : newCredit.amount != null ? newCredit.amount : credit.amount,
 							balance : newCredit.balance != null ? newCredit.balance : credit.balance,
 							description : newCredit.description ? newCredit.description : credit.description,
-							rules : newCredit.rules ? newCredit.rules : credit.rules
+							rules : newCredit.rules ? JSON.parse(newCredit.rules) : credit.rules
 						})
 						.then(function(credit) {
 							return res.json({
@@ -276,7 +278,6 @@ module.exports = function(models, config, utils) {
 				});
 			})
 			.catch(function(err) {
-				console.log('here8');
 				return res.status(400).json({
 					error : JSON.stringify(err)
 				});
@@ -345,6 +346,7 @@ module.exports = function(models, config, utils) {
         
 	};
 
+
   credits.get('/', listAll);
 
   credits.use(utils.auth.authenticate);
@@ -362,6 +364,7 @@ module.exports = function(models, config, utils) {
   credits.get('/:id/transactions', retrieveTransactions)
   
   credits.put('/:id', updateCredit);
+
 
 
 
