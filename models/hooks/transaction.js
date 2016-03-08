@@ -360,7 +360,7 @@ module.exports = function(models) {
                   userIds.forEach(function(userId){
                     createApproval(transaction, userId);
                   });
-                  
+                  updateCredit(transaction, true);
                 }
               }
             });
@@ -377,16 +377,16 @@ module.exports = function(models) {
   };
   
   Transaction.afterCreate(function(transaction, options, cb) {
-    console.log("in after create");
     processTransaction(transaction, cb);
-    if (transaction.status == 'PENDING') {
-        updateCredit(transaction, true)
-          .then(function(credit) {
-            cb();
-          })
-    } else {
-      cb();
-    }
+    // if (transaction.status == 'PENDING') {
+    //     updateCredit(transaction, true)
+    //       .then(function(credit) {
+    //         cb();
+    //       })
+    // } else {
+    //   cb();
+    // }
+    cb();
   });
   
   Transaction.afterUpdate(  function(transaction, options, cb) {

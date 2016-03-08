@@ -4,6 +4,8 @@ var express = require('express'),
 module.exports = function(models, config, utils) {
 	var Transaction = models.Transaction;
   var Credit = models.Credit;
+  var Group = models.Group;
+  var User = models.User;
 
 	var create = function(req, res) {
 		var error = {
@@ -46,7 +48,12 @@ module.exports = function(models, config, utils) {
 
 	var retrieveTransaction = function(req, res) {
 		Transaction
-			.findById(req.params.id)
+			.find({ 
+        where: { 
+           id: req.params.id
+        }, 
+          include: [Group,Credit,User] 
+      })
 			.then(function(transaction) {
 				if (!transaction) {
 					return res.status(400).json( {
