@@ -42,6 +42,7 @@ var ApprovalPriority = {
 
 
 module.exports = function(models) {
+  var Promise = models.sequelize.Promise;
   var Transaction = models.Transaction;
   var UserGroup = models.UserGroup;
   var Approval = models.Approval;
@@ -305,6 +306,8 @@ module.exports = function(models) {
               return (!rule.min || (rule.min <= rule.amount)) &&
                     (!rule.max || (rule.max > rule.amount));
             });
+            console.log("relevant rules");
+            console.log(relevantRules);
             var strictestRulePromise = getStrictestRule(relevantRules, credit);
             strictestRulePromise.then(function(approvalData) {
               if (!approvalData) {
@@ -313,6 +316,7 @@ module.exports = function(models) {
                     status : 'APPROVED'
                   })
                   .then(function(transaction) {
+                    updateCredit(transaction, true);
                     //NO RELEVANT RULES -- SEND OUT REIMBURSEMENT
                   });
               } else {
@@ -325,6 +329,8 @@ module.exports = function(models) {
                   //DECLINE AND NOTIFY TRANSACTION REQUESTER
                 } else {
                   
+                  console.log("approval Data")
+                  console.log(approvalData);
                   var requiredUsers = approvalData.requiredUsers;
                   var transactionUserIndex = requiredUsers.indexOf(transaction.UserId);
                   if (transactionUserIndex > -1) {
@@ -335,6 +341,7 @@ module.exports = function(models) {
                         var percent = approvalData.threshold / 100.0;
                         approvalData.requiredUserNumber = Math.ceil(percent * approvalData.requiredUsers.length);
                   }
+
                   
                   //We can't require more users to sign off than exist in the group
                   if (approvalData.requiredUserNumber > approvalData.requiredUsers.length) {
@@ -349,9 +356,12 @@ module.exports = function(models) {
                     stateInfo : updatedState
                   })
                   var userIds = transaction.stateInfo.currentState.currentRule.requiredUsers;
+                  console.log("sending approvals out to users");
+                  console.log(userIds);
                   userIds.forEach(function(userId){
                     createApproval(transaction, userId);
                   });
+                  updateCredit(transaction, true);
                 }
               }
             });
@@ -369,14 +379,15 @@ module.exports = function(models) {
   
   Transaction.afterCreate(function(transaction, options, cb) {
     processTransaction(transaction, cb);
-    if (transaction.status == 'PENDING') {
-        updateCredit(transaction, true)
-          .then(function(credit) {
-            cb();
-          })
-    } else {
-      cb();
-    }
+    // if (transaction.status == 'PENDING') {
+    //     updateCredit(transaction, true)
+    //       .then(function(credit) {
+    //         cb();
+    //       })
+    // } else {
+    //   cb();
+    // }
+    cb();
   });
   
   Transaction.afterUpdate(  function(transaction, options, cb) {

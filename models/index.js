@@ -13,6 +13,8 @@ var sequelize = new Sequelize(
   }
 );
 
+module.exports.sequelize = sequelize;
+
 // Custom addition to sequelize. Provides late-binding for instance methods
 // within models.
 var bindMethodFn = function(model, name, method) {
@@ -47,6 +49,7 @@ relations.forEach(function(relation) {
   m.Group.belongsTo(m.Group, {foreignKey : 'ParentGroupId'});
   m.Group.belongsTo(m.Organization);
   m.Group.belongsToMany(m.User, {through: m.UserGroup});
+  m.Group.hasMany(m.Credit);
   
   m.User.belongsToMany(m.Organization, {through: m.UserOrganization});
   m.User.belongsToMany(m.Group, {through: m.UserGroup});
@@ -75,5 +78,3 @@ relations.forEach(function(relation) {
   });
   
 })(module.exports);
-
-module.exports.sequelize = sequelize;

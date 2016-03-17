@@ -46,7 +46,7 @@ module.exports = function(models, config, utils) {
   var findOrganizations = function(req, res) {
      if (!req.query.query) {
       return res.status(400).json({
-        error: 'Please provide a name to query.'
+        error: 'Please provide a query string.'
       });
     }
     Organization
@@ -216,10 +216,11 @@ module.exports = function(models, config, utils) {
   		});
   };
 
+  organizations.get('/', findOrganizations);
+  
   organizations.use(utils.auth.authenticate);
 
   organizations.post('/', create);
-  organizations.get('/', findOrganizations);
 
   organizations.get('/:id', retrieveOrganization);
 
@@ -227,9 +228,10 @@ module.exports = function(models, config, utils) {
 
   organizations.get('/:id/groups', retrieveGroups)
   
-  organizations.use('/:id', utils.auth.authenticateOrganizationAdmin);
-
   organizations.post('/:id/users', addUser);
+  
+  organizations.use('/:id', utils.auth.authenticateOrganizationAdmin);
+  
   organizations.delete('/:id/users', removeUser);
 
   return organizations;	

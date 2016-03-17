@@ -8,10 +8,32 @@ module.exports = function(models, config, utils) {
 	var UserGroup = models.UserGroup;
 	var User = models.User;
 
-	var listAll = function(req,res) {
-		return res.json({
-			sup : "sup"
-		})
+	var findGroups = function(req,res) {
+     if (!req.query.query) {
+      return res.status(400).json({
+        error: 'Please a query string.'
+      });
+    }
+    Group
+      .findAll({
+        where : {
+          name: {
+            $iLike : "%" + req.query.query + "%"
+          }
+        }
+      })
+      .then(function(organizations) {
+        return res.json({
+          organizations: organizations.map(function(organization) {
+            return organization.toJSON();
+          })
+        });
+      })
+      .catch(function(err) {
+        return res.status(400).json({
+          error: JSON.stringify(err)
+        });
+      });
 	};
 
 	var create = function(req,res) {
@@ -26,8 +48,7 @@ module.exports = function(models, config, utils) {
 			.create({
 				name : req.body.name,
 				description : req.body.description,
-				OrganizationId : req.body.OrganizationId,
-				ParentGroupId : pId ? pId : null 
+				OrganizationId : req.body.OrganizationId
 			})
 			.then(function(group){
 				UserGroup
@@ -359,7 +380,7 @@ module.exports = function(models, config, utils) {
 
 	groups.use(utils.auth.authenticate);
 
-	groups.get('/', listAll);
+	groups.get('/', findGroups);
 	groups.post('/', create);
 
 	groups.get('/:id', retrieveGroup)

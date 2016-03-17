@@ -8,6 +8,7 @@ module.exports = function(models, config, utils) {
       Transaction = models.Transaction,
       UserGroup = models.UserGroup,
       Group = models.Group,
+      Credit = models.Credit,
       Approval = models.Approval;
   
   var create = function(req, res) {
@@ -48,7 +49,7 @@ module.exports = function(models, config, utils) {
   var findUsers = function(req, res) {
     if (!req.query.query) {
       return res.status(400).json({
-        error: 'Please provide a name to query'
+        error: 'Please provide a query string.'
       });
     }
     var nameArr = req.query.query.split(" ");
@@ -243,7 +244,9 @@ module.exports = function(models, config, utils) {
 
   var retrieveUserGroups = function(user, req, res) {
     user
-      .getGroups()
+      .getGroups({
+        include: [Credit]
+      })
       .then(function(groups) {
         return res.json({
           groups: groups.map(function(group) {
@@ -445,9 +448,11 @@ module.exports = function(models, config, utils) {
   };
 
   users.post('/', create);
-  users.get('/', findUsers);
+  
   
   users.use(utils.auth.authenticate);
+  
+  users.get('/', findUsers);
   
   users.get('/me', me);
   users.get('/:id', retrieveUser)
