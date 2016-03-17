@@ -20,7 +20,8 @@ module.exports = function(models, config, utils) {
           name: {
             $iLike : "%" + req.query.query + "%"
           }
-        }
+        },
+        include: [Credit]
       })
       .then(function(organizations) {
         return res.json({
