@@ -316,6 +316,7 @@ module.exports = function(models) {
                     status : 'APPROVED'
                   })
                   .then(function(transaction) {
+                    updateCredit(transaction, true);
                     //NO RELEVANT RULES -- SEND OUT REIMBURSEMENT
                   });
               } else {
