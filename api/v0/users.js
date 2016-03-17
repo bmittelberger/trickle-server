@@ -8,6 +8,7 @@ module.exports = function(models, config, utils) {
       Transaction = models.Transaction,
       UserGroup = models.UserGroup,
       Group = models.Group,
+      Credit = models.Credit,
       Approval = models.Approval;
   
   var create = function(req, res) {
@@ -241,7 +242,9 @@ module.exports = function(models, config, utils) {
 
   var retrieveUserGroups = function(user, req, res) {
     user
-      .getGroups()
+      .getGroups({
+        include: [Credit]
+      })
       .then(function(groups) {
         return res.json({
           groups: groups.map(function(group) {

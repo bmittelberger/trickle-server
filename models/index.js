@@ -49,6 +49,7 @@ relations.forEach(function(relation) {
   m.Group.belongsTo(m.Group, {foreignKey : 'ParentGroupId'});
   m.Group.belongsTo(m.Organization);
   m.Group.belongsToMany(m.User, {through: m.UserGroup});
+  m.Group.hasMany(m.Credit);
   
   m.User.belongsToMany(m.Organization, {through: m.UserOrganization});
   m.User.belongsToMany(m.Group, {through: m.UserGroup});
