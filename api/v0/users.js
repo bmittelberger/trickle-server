@@ -356,7 +356,8 @@ module.exports = function(models, config, utils) {
       .findAll({
         where : {
           UserId : id
-        }
+        },
+        order : '"createdAt" DESC'
       })
       .then(function(transactions) {
         return res.json({

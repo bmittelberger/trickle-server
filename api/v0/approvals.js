@@ -15,7 +15,8 @@ module.exports = function(models, config, utils) {
         },
         include: [{
           model: Transaction
-        }]
+        }],
+        order : '"createdAt" DESC'
       })
       .then(function(approvals) {
         return res.json({
