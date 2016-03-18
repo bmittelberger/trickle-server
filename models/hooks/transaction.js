@@ -57,9 +57,9 @@ module.exports = function(models) {
         TransactionId: transaction.id,
         CreditId: currentState.CreditId
       })
-      // .then(function(approval){ 
-      //   console.log(approval.toJSON());
-      // })
+      .then(function(approval){ 
+        approval.sendNotification();
+      })
       .catch(function(err){
         console.log(err);
       });
