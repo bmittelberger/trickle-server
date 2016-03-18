@@ -29,7 +29,7 @@ var reimburse = function(transaction) {
               form: {
                 access_token: organization.venmo.access_token,
                 phone: user.venmo.phone,
-                note: transaction.description + (transaction.message ? ' - ' + transaction.message : ''),
+                note: transaction.title,
                 amount: demoReducer(transaction.amount),
                 // amount: transaction.amount,
                 audience: 'private'
