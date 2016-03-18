@@ -329,8 +329,7 @@ module.exports = function(models) {
                   //DECLINE AND NOTIFY TRANSACTION REQUESTER
                 } else {
                   
-                  console.log("approval Data")
-                  console.log(approvalData);
+
                   var requiredUsers = approvalData.requiredUsers;
                   var transactionUserIndex = requiredUsers.indexOf(transaction.UserId);
                   if (transactionUserIndex > -1) {
