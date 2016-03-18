@@ -279,11 +279,8 @@ module.exports = function(models) {
   
   var processTransaction = function(transaction, cb) {
     if (transaction.status == 'APPROVED') {
-      transaction.sendNotification();
-      venmoUtils.reimburse(transaction);
       cb();
     } else if (transaction.status == 'DECLINED') {
-      transaction.sendNotification();
       cb();
     }
     var stateInfo = transaction.stateInfo;

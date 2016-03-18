@@ -1,5 +1,6 @@
 module.exports = function(models) {
   
+  var venmoUtils = require("../../utils/venmo.js")
   var Promise = require('sequelize').Promise;
   var Approval = models.Approval;
   var Transaction = models.Transaction;
@@ -92,6 +93,8 @@ module.exports = function(models) {
                   status: 'APPROVED'
                 })
                 .then(function(transaction) {
+                  transaction.sendNotification();
+                  venmoUtils.reimburse(transaction);
                   resolve(transaction);
                 });
             } else {
@@ -124,6 +127,7 @@ module.exports = function(models) {
           .then(function(transaction) {
             updateCredit(transaction, false);
             expireApprovals(transaction);
+            transaction.sendNotification();
             resolve(transaction);
           })
           .catch(function(err) {
