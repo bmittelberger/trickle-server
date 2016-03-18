@@ -318,7 +318,7 @@ module.exports = function(models) {
                   .then(function(transaction) {
                     updateCredit(transaction, true);
                     //NO RELEVANT RULES -- SEND OUT REIMBURSEMENT
-x                    venmoUtils.reimburse(transaction);
+                    venmoUtils.reimburse(transaction);
                   });
               } else {
                 if (approvalData.approval == ApprovalType.DECLINE) {
