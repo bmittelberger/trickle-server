@@ -279,11 +279,11 @@ module.exports = function(models) {
   
   var processTransaction = function(transaction, cb) {
     if (transaction.status == 'APPROVED') {
-      //SEND REIMBURSEMENT
+      transaction.sendNotification();
       venmoUtils.reimburse(transaction);
       cb();
     } else if (transaction.status == 'DECLINED') {
-      // Send push notification to user?
+      transaction.sendNotification();
       cb();
     }
     var stateInfo = transaction.stateInfo;
@@ -317,7 +317,7 @@ module.exports = function(models) {
                   })
                   .then(function(transaction) {
                     updateCredit(transaction, true);
-                    //NO RELEVANT RULES -- SEND OUT REIMBURSEMENT
+                    transaction.sendNotification();
                     venmoUtils.reimburse(transaction);
                   });
               } else {
@@ -325,9 +325,10 @@ module.exports = function(models) {
                   transaction
                     .updateAttributes({
                       status : 'DECLINED'
-                      //SET MESSAGE TO RULE INFO
-                    })
-                  //DECLINE AND NOTIFY TRANSACTION REQUESTER
+                      
+                    }).then(function(transaction) {
+                      transaction.sendNotification();
+                    });
                 } else {
                   
 
