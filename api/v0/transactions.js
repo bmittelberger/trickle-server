@@ -12,7 +12,8 @@ module.exports = function(models, config, utils) {
 			error : 'Transaction could not be created'
 		};
 		if (!req.body.amount || !req.body.title ||
-			!req.body.GroupId || !req.body.CreditId) {
+			!req.body.GroupId || !req.body.CreditId ||
+			!req.body.category || !req.body.location) {
 			return res.json(400,error);
 		}
 

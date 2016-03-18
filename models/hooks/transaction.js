@@ -57,9 +57,9 @@ module.exports = function(models) {
         TransactionId: transaction.id,
         CreditId: currentState.CreditId
       })
-      // .then(function(approval){ 
-      //   console.log(approval.toJSON());
-      // })
+      .then(function(approval){ 
+        approval.sendNotification();
+      })
       .catch(function(err){
         console.log(err);
       });
@@ -280,7 +280,7 @@ module.exports = function(models) {
   var processTransaction = function(transaction, cb) {
     if (transaction.status == 'APPROVED') {
       //SEND REIMBURSEMENT
-      console.log("SENDING REIMBURSMENT");
+      venmoUtils.reimburse(transaction);
       cb();
     } else if (transaction.status == 'DECLINED') {
       // Send push notification to user?
@@ -306,8 +306,8 @@ module.exports = function(models) {
               return (!rule.min || (rule.min <= rule.amount)) &&
                     (!rule.max || (rule.max > rule.amount));
             });
-            console.log("relevant rules");
-            console.log(relevantRules);
+            // console.log("relevant rules");
+            // console.log(relevantRules);
             var strictestRulePromise = getStrictestRule(relevantRules, credit);
             strictestRulePromise.then(function(approvalData) {
               if (!approvalData) {
@@ -318,6 +318,7 @@ module.exports = function(models) {
                   .then(function(transaction) {
                     updateCredit(transaction, true);
                     //NO RELEVANT RULES -- SEND OUT REIMBURSEMENT
+                    venmoUtils.reimburse(transaction);
                   });
               } else {
                 if (approvalData.approval == ApprovalType.DECLINE) {
@@ -355,8 +356,8 @@ module.exports = function(models) {
                     stateInfo : updatedState
                   })
                   var userIds = transaction.stateInfo.currentState.currentRule.requiredUsers;
-                  console.log("sending approvals out to users");
-                  console.log(userIds);
+                  // console.log("sending approvals out to users");
+                  // console.log(userIds);
                   userIds.forEach(function(userId){
                     createApproval(transaction, userId);
                   });
