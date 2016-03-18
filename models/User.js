@@ -23,6 +23,9 @@ module.exports = function(sequelize, DataTypes) {
     },
     venmo: {
       type: DataTypes.JSON
+    },
+    device : {
+      type: DataTypes.STRING
     }
   }, {
     hooks: {

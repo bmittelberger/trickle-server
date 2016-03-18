@@ -146,7 +146,8 @@ module.exports = function(models, config, utils) {
           .updateAttributes({
             first: u.first ? u.first : user.first,
             last: u.last ? u.last : user.last,
-            email: u.email ? u.email : user.email
+            email: u.email ? u.email : user.email,
+            device: u.device ? u.device : user.device
           })
           .then(function(user) {
             return res.json(200, {
