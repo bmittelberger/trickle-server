@@ -13,9 +13,23 @@ module.exports = function(models, config, utils) {
   
   var create = function(req, res) {
     if (!req.body.first || !req.body.last ||
-        !req.body.email || !req.body.password) {
+        !req.body.email || !req.body.password ||
+        !req.body.venmo) {
       return res.status(400).json({
         error : "Invalid request body."
+      });
+    }
+    var venmo;
+    try{
+        venmo = JSON.parse(req.body.venmo);
+    }catch(e){
+        return res.status(400).json({
+        error : "JSON object (venmo) illformed."
+      });
+    }
+    if (!venmo.phone){
+      return res.status(400).json({
+        error : "JSON object (venmo) must contain 'phone' key."
       });
     }
     User
@@ -23,7 +37,8 @@ module.exports = function(models, config, utils) {
         first: req.body.first,
         last: req.body.last,
         email: req.body.email,
-        password: req.body.password
+        password: req.body.password,
+        venmo: venmo
       })
       .then(function(user) {
         return res.json(200, {

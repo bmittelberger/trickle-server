@@ -29,7 +29,7 @@ module.exports = function(models, config, utils) {
 				balance : req.body.amount,
 				description : req.body.description,
 				GroupId : req.body.GroupId,
-				rules : req.body.rules ? req.body.rules : []
+				rules : req.body.rules ? JSON.parse(req.body.rules) : []
 			}).then(function(credit){
 				return res.json(200,{
 					credit : credit.toJSON()
